@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * (C) Copyright 2017 Theobroma Systems Design und Consulting GmbH
- *
- * SPDX-License-Identifier:	GPL-2.0
  */
 
 #include <common.h>
@@ -19,8 +18,6 @@
 #include <asm/arch/ddr_rk3368.h>
 #include <asm/arch/sdram.h>
 #include <asm/arch/sdram_common.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 struct dram_info {
 	struct ram_info info;
@@ -230,7 +227,7 @@ static int memory_init(struct rk3368_ddr_pctl *pctl,
 	tmp = get_timer(0);
 	do {
 		if (get_timer(tmp) > timeout_ms) {
-			error("%s: POWER_UP_START did not complete in %ld ms\n",
+			pr_err("%s: POWER_UP_START did not complete in %ld ms\n",
 			      __func__, timeout_ms);
 			return -ETIME;
 		}
@@ -422,7 +419,7 @@ static int dfi_cfg(struct rk3368_ddr_pctl *pctl)
 	tmp = get_timer(0);
 	do {
 		if (get_timer(tmp) > timeout_ms) {
-			error("%s: DFI init did not complete within %ld ms\n",
+			pr_err("%s: DFI init did not complete within %ld ms\n",
 			      __func__, timeout_ms);
 			return -ETIME;
 		}
@@ -457,7 +454,7 @@ static int pctl_calc_timings(struct rk3368_sdram_params *params,
 	u32 tfaw_as_ps;
 
 	if (params->ddr_speed_bin != DDR3_1600K) {
-		error("%s: unimplemented DDR3 speed bin %d\n",
+		pr_err("%s: unimplemented DDR3 speed bin %d\n",
 		      __func__, params->ddr_speed_bin);
 		return -1;
 	}
@@ -585,7 +582,7 @@ static int ddrphy_data_training(struct rk3368_ddr_pctl *pctl,
 	tmp = get_timer(0);
 	do {
 		if (get_timer(tmp) > timeout_ms) {
-			error("%s: did not complete within %ld ms\n",
+			pr_err("%s: did not complete within %ld ms\n",
 			      __func__, timeout_ms);
 			return -ETIME;
 		}
@@ -625,7 +622,7 @@ static int sdram_col_row_detect(struct udevice *dev)
 	}
 
 	if (col == 8) {
-		error("%s: col detect error\n", __func__);
+		pr_err("%s: col detect error\n", __func__);
 		return -EINVAL;
 	}
 
@@ -644,7 +641,7 @@ static int sdram_col_row_detect(struct udevice *dev)
 	}
 
 	if (row == 11) {
-		error("%s: row detect error\n", __func__);
+		pr_err("%s: row detect error\n", __func__);
 		return -EINVAL;
 	}
 
@@ -764,7 +761,7 @@ static int msch_niu_config(struct rk3368_msch *msch,
 		}
 	}
 
-	error("%s: ddrconf (NIU config) not found\n", __func__);
+	pr_err("%s: ddrconf (NIU config) not found\n", __func__);
 	return -EINVAL;
 }
 
@@ -880,7 +877,7 @@ static int rk3368_dmc_ofdata_to_platdata(struct udevice *dev)
 #if !CONFIG_IS_ENABLED(OF_PLATDATA)
 	struct rk3368_sdram_params *plat = dev_get_platdata(dev);
 
-	ret = regmap_init_mem(dev, &plat->map);
+	ret = regmap_init_mem(dev_ofnode(dev), &plat->map);
 	if (ret)
 		return ret;
 #endif

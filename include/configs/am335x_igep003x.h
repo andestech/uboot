@@ -22,12 +22,6 @@
 
 #define CONFIG_ENV_SIZE			(96 << 10)	/*  96 KiB */
 
-/* Make the verbose messages from UBI stop printing */
-#define CONFIG_UBI_SILENCE_MSG
-#define CONFIG_UBIFS_SILENCE_MSG
-
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
@@ -63,8 +57,8 @@
 				"bootz ${loadaddr} - ${fdtaddr};" \
 			"fi;" \
 		"fi;\0" \
-	"mtdids=" MTDIDS_DEFAULT "\0" \
-	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
+	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"nandroot=ubi0:rootfs rw ubi.mtd=1\0" \
 	"nandrootfstype=ubifs rootwait\0" \
 	"nandload=ubi part UBI; " \
@@ -107,20 +101,12 @@
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* UART0 */
-#define CONFIG_CONS_INDEX		1
 
 /* Ethernet support */
 #define CONFIG_PHY_SMSC
 
 /* NAND support */
-#define CONFIG_NAND_OMAP_ELM
 #define CONFIG_SYS_NAND_ONFI_DETECTION	1
-
-#define CONFIG_MTD_PARTITIONS
-#define CONFIG_MTD_DEVICE
-
-#define MTDIDS_DEFAULT			"nand0=omap2-nand.0"
-#define MTDPARTS_DEFAULT		"mtdparts=omap2-nand.0:512k(SPL),-(UBI)"
 
 /* SPL */
 

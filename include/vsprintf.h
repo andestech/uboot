@@ -1,14 +1,14 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __VSPRINTF_H
 #define __VSPRINTF_H
 
 #include <stdarg.h>
+#include <linux/types.h>
 
 ulong simple_strtoul(const char *cp, char **endp, unsigned int base);
 

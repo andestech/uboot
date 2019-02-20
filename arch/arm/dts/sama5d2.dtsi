@@ -69,6 +69,13 @@
 			#size-cells = <1>;
 			u-boot,dm-pre-reloc;
 
+			hlcdc: hlcdc@f0000000 {
+				compatible = "atmel,at91sam9x5-hlcdc";
+				reg = <0xf0000000 0x2000>;
+				clocks = <&lcdc_clk>;
+				status = "disabled";
+			};
+
 			pmc: pmc@f0014000 {
 				compatible = "atmel,sama5d2-pmc", "syscon";
 				reg = <0xf0014000 0x160>;
@@ -295,6 +302,7 @@
 						#clock-cells = <0>;
 						reg = <24>;
 						atmel,clk-output-range = <0 83000000>;
+						u-boot,dm-pre-reloc;
 					};
 
 					uart1_clk: uart1_clk@25 {
@@ -308,6 +316,7 @@
 						#clock-cells = <0>;
 						reg = <26>;
 						atmel,clk-output-range = <0 83000000>;
+						u-boot,dm-pre-reloc;
 					};
 
 					uart3_clk: uart3_clk@27 {
@@ -628,10 +637,26 @@
 				status = "disabled";
 			};
 
+			uart0: serial@f801c000 {
+				compatible = "atmel,at91sam9260-usart";
+				reg = <0xf801c000 0x100>;
+				clocks = <&uart0_clk>;
+				clock-names = "usart";
+				status = "disabled";
+			};
+
 			uart1: serial@f8020000 {
 				compatible = "atmel,at91sam9260-usart";
 				reg = <0xf8020000 0x100>;
 				clocks = <&uart1_clk>;
+				clock-names = "usart";
+				status = "disabled";
+			};
+
+			uart2: serial@f8024000 {
+				compatible = "atmel,at91sam9260-usart";
+				reg = <0xf8024000 0x100>;
+				clocks = <&uart2_clk>;
 				clock-names = "usart";
 				status = "disabled";
 			};
@@ -743,5 +768,10 @@
 				};
 			};
 		};
+	};
+
+	onewire_tm: onewire {
+		compatible = "w1-gpio";
+		status = "disabled";
 	};
 };

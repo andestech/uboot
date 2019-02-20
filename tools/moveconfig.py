@@ -1,8 +1,7 @@
 #!/usr/bin/env python2
+# SPDX-License-Identifier: GPL-2.0+
 #
 # Author: Masahiro Yamada <yamada.masahiro@socionext.com>
-#
-# SPDX-License-Identifier:	GPL-2.0+
 #
 
 """
@@ -1170,7 +1169,7 @@ class Slot:
             toolchain = self.toolchains.Select(arch)
         except ValueError:
             self.log += color_text(self.options.color, COLOR_YELLOW,
-                    "Tool chain for '%s' is missing.  Do nothing.\n % arch")
+                    "Tool chain for '%s' is missing.  Do nothing.\n" % arch)
             self.finish(False)
             return
 	env = toolchain.MakeEnvironment(False)

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the SAMA5D3xEK board.
  *
@@ -6,16 +7,12 @@
  * based on at91sam9m10g45ek.h by:
  * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
 #include "at91-sama5_common.h"
-
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
 /*
  * This needs to be defined for the OHCI code to work but it is defined as
@@ -28,30 +25,17 @@
  */
 #define ATMEL_PMC_UHP			(1 <<  6)
 
-/* LCD */
-#define LCD_BPP				LCD_COLOR16
-#define LCD_OUTPUT_BPP                  24
-#define CONFIG_LCD_LOGO
-#define CONFIG_LCD_INFO
-#define CONFIG_LCD_INFO_BELOW_LOGO
-#define CONFIG_ATMEL_HLCD
-#define CONFIG_ATMEL_LCD_RGB565
-
 /* board specific (not enough SRAM) */
 #define CONFIG_SAMA5D3_LCD_BASE		0x23E00000
 
 /* NOR flash */
 #ifdef CONFIG_MTD_NOR_FLASH
-#define CONFIG_FLASH_CFI_DRIVER
-#define CONFIG_SYS_FLASH_CFI
-#define CONFIG_SYS_FLASH_PROTECTION
 #define CONFIG_SYS_FLASH_BASE		0x10000000
 #define CONFIG_SYS_MAX_FLASH_SECT	131
 #define CONFIG_SYS_MAX_FLASH_BANKS	1
 #endif
 
 /* SDRAM */
-#define CONFIG_NR_DRAM_BANKS		1
 #define CONFIG_SYS_SDRAM_BASE           0x20000000
 #define CONFIG_SYS_SDRAM_SIZE		0x20000000
 
@@ -70,7 +54,6 @@
 
 /* NAND flash */
 #ifdef CONFIG_CMD_NAND
-#define CONFIG_NAND_ATMEL
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x60000000
 /* our ALE is AD21 */
@@ -99,7 +82,6 @@
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
 
 /* SPL */
-#define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x300000
 #define CONFIG_SPL_MAX_SIZE		0x18000
 #define CONFIG_SPL_BSS_START_ADDR	0x20000000
@@ -114,7 +96,6 @@
 #define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME	"u-boot.img"
 
 #elif CONFIG_SPI_BOOT
-#define CONFIG_SPL_SPI_LOAD
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x10000
 
 #elif CONFIG_NAND_BOOT

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * drivers/net/ravb.c
  *     This file is driver for Renesas Ethernet AVB.
@@ -5,8 +6,6 @@
  * Copyright (C) 2015-2017  Renesas Electronics Corporation
  *
  * Based on the SuperH Ethernet driver.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -18,6 +17,7 @@
 #include <linux/mii.h>
 #include <wait_bit.h>
 #include <asm/io.h>
+#include <asm/gpio.h>
 
 /* Registers */
 #define RAVB_REG_CCC		0x000
@@ -122,6 +122,7 @@ struct ravb_priv {
 	struct mii_dev		*bus;
 	void __iomem		*iobase;
 	struct clk		clk;
+	struct gpio_desc	reset_gpio;
 };
 
 static inline void ravb_flush_dcache(u32 addr, u32 len)
@@ -220,8 +221,8 @@ static int ravb_reset(struct udevice *dev)
 	writel(CCC_OPC_CONFIG, eth->iobase + RAVB_REG_CCC);
 
 	/* Check the operating mode is changed to the config mode. */
-	return wait_for_bit(dev->name, (void *)eth->iobase + RAVB_REG_CSR,
-			    CSR_OPS_CONFIG, true, 100, true);
+	return wait_for_bit_le32(eth->iobase + RAVB_REG_CSR,
+				 CSR_OPS_CONFIG, true, 100, true);
 }
 
 static void ravb_base_desc_init(struct ravb_priv *eth)
@@ -302,6 +303,13 @@ static int ravb_phy_config(struct udevice *dev)
 	struct phy_device *phydev;
 	int mask = 0xffffffff, reg;
 
+	if (dm_gpio_is_valid(&eth->reset_gpio)) {
+		dm_gpio_set_value(&eth->reset_gpio, 1);
+		mdelay(20);
+		dm_gpio_set_value(&eth->reset_gpio, 0);
+		mdelay(1);
+	}
+
 	phydev = phy_find_by_mask(eth->bus, mask, pdata->phy_interface);
 	if (!phydev)
 		return -ENODEV;
@@ -310,12 +318,13 @@ static int ravb_phy_config(struct udevice *dev)
 
 	eth->phydev = phydev;
 
-	/* 10BASE is not supported for Ethernet AVB MAC */
-	phydev->supported &= ~(SUPPORTED_10baseT_Full
-			       | SUPPORTED_10baseT_Half);
+	phydev->supported &= SUPPORTED_100baseT_Full |
+			     SUPPORTED_1000baseT_Full | SUPPORTED_Autoneg |
+			     SUPPORTED_TP | SUPPORTED_MII | SUPPORTED_Pause |
+			     SUPPORTED_Asym_Pause;
+
 	if (pdata->max_speed != 1000) {
-		phydev->supported &= ~(SUPPORTED_1000baseT_Half
-				       | SUPPORTED_1000baseT_Full);
+		phydev->supported &= ~SUPPORTED_1000baseT_Full;
 		reg = phy_read(phydev, -1, MII_CTRL1000);
 		reg &= ~(BIT(9) | BIT(8));
 		phy_write(phydev, -1, MII_CTRL1000, reg);
@@ -390,7 +399,7 @@ static int ravb_dmac_init(struct udevice *dev)
 static int ravb_config(struct udevice *dev)
 {
 	struct ravb_priv *eth = dev_get_priv(dev);
-	struct phy_device *phy;
+	struct phy_device *phy = eth->phydev;
 	u32 mask = ECMR_CHG_DM | ECMR_RE | ECMR_TE;
 	int ret;
 
@@ -400,13 +409,6 @@ static int ravb_config(struct udevice *dev)
 	/* Configure E-MAC registers */
 	ravb_mac_init(eth);
 	ravb_write_hwaddr(dev);
-
-	/* Configure phy */
-	ret = ravb_phy_config(dev);
-	if (ret)
-		return ret;
-
-	phy = eth->phydev;
 
 	ret = phy_startup(phy);
 	if (ret)
@@ -429,18 +431,14 @@ static int ravb_config(struct udevice *dev)
 	return 0;
 }
 
-int ravb_start(struct udevice *dev)
+static int ravb_start(struct udevice *dev)
 {
 	struct ravb_priv *eth = dev_get_priv(dev);
 	int ret;
 
-	ret = clk_enable(&eth->clk);
-	if (ret)
-		return ret;
-
 	ret = ravb_reset(dev);
 	if (ret)
-		goto err;
+		return ret;
 
 	ravb_base_desc_init(eth);
 	ravb_tx_desc_init(eth);
@@ -448,30 +446,27 @@ int ravb_start(struct udevice *dev)
 
 	ret = ravb_config(dev);
 	if (ret)
-		goto err;
+		return ret;
 
 	/* Setting the control will start the AVB-DMAC process. */
 	writel(CCC_OPC_OPERATION, eth->iobase + RAVB_REG_CCC);
 
 	return 0;
-
-err:
-	clk_disable(&eth->clk);
-	return ret;
 }
 
 static void ravb_stop(struct udevice *dev)
 {
 	struct ravb_priv *eth = dev_get_priv(dev);
 
+	phy_shutdown(eth->phydev);
 	ravb_reset(dev);
-	clk_disable(&eth->clk);
 }
 
 static int ravb_probe(struct udevice *dev)
 {
 	struct eth_pdata *pdata = dev_get_platdata(dev);
 	struct ravb_priv *eth = dev_get_priv(dev);
+	struct ofnode_phandle_args phandle_args;
 	struct mii_dev *mdiodev;
 	void __iomem *iobase;
 	int ret;
@@ -482,6 +477,17 @@ static int ravb_probe(struct udevice *dev)
 	ret = clk_get_by_index(dev, 0, &eth->clk);
 	if (ret < 0)
 		goto err_mdio_alloc;
+
+	ret = dev_read_phandle_with_args(dev, "phy-handle", NULL, 0, 0, &phandle_args);
+	if (!ret) {
+		gpio_request_by_name_nodev(phandle_args.node, "reset-gpios", 0,
+					   &eth->reset_gpio, GPIOD_IS_OUT);
+	}
+
+	if (!dm_gpio_is_valid(&eth->reset_gpio)) {
+		gpio_request_by_name(dev, "reset-gpios", 0, &eth->reset_gpio,
+				     GPIOD_IS_OUT);
+	}
 
 	mdiodev = mdio_alloc();
 	if (!mdiodev) {
@@ -500,8 +506,23 @@ static int ravb_probe(struct udevice *dev)
 
 	eth->bus = miiphy_get_dev_by_name(dev->name);
 
+	/* Bring up PHY */
+	ret = clk_enable(&eth->clk);
+	if (ret)
+		goto err_mdio_register;
+
+	ret = ravb_reset(dev);
+	if (ret)
+		goto err_mdio_reset;
+
+	ret = ravb_phy_config(dev);
+	if (ret)
+		goto err_mdio_reset;
+
 	return 0;
 
+err_mdio_reset:
+	clk_disable(&eth->clk);
 err_mdio_register:
 	mdio_free(mdiodev);
 err_mdio_alloc:
@@ -513,9 +534,13 @@ static int ravb_remove(struct udevice *dev)
 {
 	struct ravb_priv *eth = dev_get_priv(dev);
 
+	clk_disable(&eth->clk);
+
 	free(eth->phydev);
 	mdio_unregister(eth->bus);
 	mdio_free(eth->bus);
+	if (dm_gpio_is_valid(&eth->reset_gpio))
+		dm_gpio_free(dev, &eth->reset_gpio);
 	unmap_physmem(eth->iobase, MAP_NOCACHE);
 
 	return 0;
@@ -638,6 +663,10 @@ int ravb_ofdata_to_platdata(struct udevice *dev)
 static const struct udevice_id ravb_ids[] = {
 	{ .compatible = "renesas,etheravb-r8a7795" },
 	{ .compatible = "renesas,etheravb-r8a7796" },
+	{ .compatible = "renesas,etheravb-r8a77965" },
+	{ .compatible = "renesas,etheravb-r8a77970" },
+	{ .compatible = "renesas,etheravb-r8a77990" },
+	{ .compatible = "renesas,etheravb-r8a77995" },
 	{ .compatible = "renesas,etheravb-rcar-gen3" },
 	{ }
 };

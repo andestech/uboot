@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2017 Intel Corporation
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -39,7 +38,7 @@ static int sfi_table_check(struct sfi_table_header *sbh)
 		chksum += *pos++;
 
 	if (chksum)
-		error("sfi: Invalid checksum\n");
+		pr_err("sfi: Invalid checksum\n");
 
 	/* Checksum is OK if zero */
 	return chksum ? -EILSEQ : 0;
@@ -76,7 +75,7 @@ static struct sfi_table_simple *sfi_search_mmap(void)
 	/* Find SYST table */
 	sb = sfi_get_table_by_sig(SFI_BASE_ADDR, SFI_SIG_SYST);
 	if (!sb) {
-		error("sfi: failed to locate SYST table\n");
+		pr_err("sfi: failed to locate SYST table\n");
 		return NULL;
 	}
 
@@ -90,7 +89,7 @@ static struct sfi_table_simple *sfi_search_mmap(void)
 			return (struct sfi_table_simple *)sbh;
 	}
 
-	error("sfi: failed to locate SFI MMAP table\n");
+	pr_err("sfi: failed to locate SFI MMAP table\n");
 	return NULL;
 }
 
@@ -99,7 +98,8 @@ static struct sfi_table_simple *sfi_search_mmap(void)
 	     i < SFI_GET_NUM_ENTRIES(sb, struct sfi_mem_entry);		\
 	     i++, mentry++)						\
 
-static unsigned sfi_setup_e820(unsigned max_entries, struct e820entry *entries)
+static unsigned int sfi_setup_e820(unsigned int max_entries,
+				   struct e820_entry *entries)
 {
 	struct sfi_table_simple *sb;
 	struct sfi_mem_entry *mentry;
@@ -188,7 +188,8 @@ static phys_size_t sfi_get_ram_size(void)
 	return ram;
 }
 
-unsigned install_e820_map(unsigned max_entries, struct e820entry *entries)
+unsigned int install_e820_map(unsigned int max_entries,
+			      struct e820_entry *entries)
 {
 	return sfi_setup_e820(max_entries, entries);
 }

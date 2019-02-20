@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2017 Linaro
  * Jorge Ramirez-Ortiz <jorge.ramirez-ortiz@linaro.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <dm.h>
@@ -36,6 +35,7 @@ static struct mm_region poplar_mem_map[] = {
 
 struct mm_region *mem_map = poplar_mem_map;
 
+#if !CONFIG_IS_ENABLED(OF_CONTROL)
 static const struct pl01x_serial_platdata serial_platdata = {
 	.base = REG_BASE_UART0,
 	.type = TYPE_PL010,
@@ -46,6 +46,7 @@ U_BOOT_DEVICE(poplar_serial) = {
 	.name = "serial_pl01x",
 	.platdata = &serial_platdata,
 };
+#endif
 
 int checkboard(void)
 {
@@ -164,6 +165,34 @@ int board_mmc_init(bd_t *bis)
 
 	return ret;
 }
+
+#if defined(CONFIG_USB_GADGET) && defined(CONFIG_USB_GADGET_DWC2_OTG)
+#include <usb.h>
+#include <usb/dwc2_udc.h>
+#include <g_dnl.h>
+
+static struct dwc2_plat_otg_data poplar_otg_data = {
+	.regs_otg = HIOTG_BASE_ADDR
+};
+
+static void set_usb_to_device(void)
+{
+	setbits_le32(PERI_CTRL_USB3, USB2_2P_CHIPID);
+}
+
+int board_usb_init(int index, enum usb_init_type init)
+{
+	set_usb_to_device();
+	return dwc2_udc_probe(&poplar_otg_data);
+}
+
+int g_dnl_bind_fixup(struct usb_device_descriptor *dev, const char *name)
+{
+	if (!env_get("serial#"))
+		g_dnl_set_serialnumber("0123456789POPLAR");
+	return 0;
+}
+#endif
 
 int board_init(void)
 {

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2010  Eric C. Cooper <ecc@cmu.edu>
  *
@@ -5,8 +6,6 @@
  * Prafulla Wadaskar <prafulla@marvell.com>
  * (C) Copyright 2009
  * Marvell Semiconductor <www.marvell.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CONFIG_DOCKSTAR_H
@@ -17,7 +16,6 @@
  */
 #define CONFIG_FEROCEON_88FR131	1	/* CPU Core subversion */
 #define CONFIG_KW88F6281	1	/* SOC Name */
-#define CONFIG_MACH_DOCKSTAR	/* Machine type */
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* disable board lowlevel_init */
 
 /*
@@ -51,12 +49,10 @@
 	"ubifsload 0x1100000 ${initrd}; " \
 	"bootm 0x800000 0x1100000"
 
-#define CONFIG_MTDPARTS		"mtdparts=orion_nand:1m(uboot),-(root)\0"
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=console=ttyS0,115200\0" \
 	"mtdids=nand0=orion_nand\0" \
-	"mtdparts="CONFIG_MTDPARTS \
+	"mtdparts="CONFIG_MTDPARTS_DEFAULT \
 	"kernel=/boot/uImage\0" \
 	"initrd=/boot/uInitrd\0" \
 	"bootargs_root=ubi.mtd=1 root=ubi0:root rootfstype=ubifs ro\0"
@@ -72,7 +68,5 @@
 /*
  * File system
  */
-#define CONFIG_MTD_DEVICE               /* needed for mtdparts commands */
-#define CONFIG_MTD_PARTITIONS
 
 #endif /* _CONFIG_DOCKSTAR_H */

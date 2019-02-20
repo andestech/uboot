@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (C) STMicroelectronics SA 2017
- * Author(s): Patrice CHOTARD, <patrice.chotard@st.com> for STMicroelectronics.
- *
- * SPDX-License-Identifier:	GPL-2.0+
+ * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
+ * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
  */
 
 #include <common.h>
@@ -14,8 +13,6 @@
 #include <dm/root.h>
 
 #include <dt-bindings/clock/stm32h7-clks.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 /* RCC CR specific definitions */
 #define RCC_CR_HSION			BIT(0)
@@ -35,6 +32,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define RCC_CFGR_SW_CSI			1
 #define RCC_CFGR_SW_HSE			2
 #define RCC_CFGR_SW_PLL1		3
+#define RCC_CFGR_TIMPRE			BIT(15)
 
 #define RCC_PLLCKSELR_PLLSRC_HSI	0
 #define RCC_PLLCKSELR_PLLSRC_CSI	1
@@ -109,7 +107,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define		QSPISRC_PER_CK		3
 
 #define PWR_CR3				0x0c
-#define PWR_CR3_SDEN			BIT(2)
+#define PWR_CR3_SCUEN			BIT(2)
 #define PWR_D3CR			0x18
 #define PWR_D3CR_VOS_MASK		GENMASK(15, 14)
 #define PWR_D3CR_VOS_SHIFT		14
@@ -195,13 +193,6 @@ struct clk_cfg {
 	const char *name;
 };
 
-#define CLK(_gate_offset, _bit_idx, _name) \
-{ \
-	.gate_offset = _gate_offset,\
-	.gate_bit_idx = _bit_idx,\
-	.name = _name,\
-}
-
 /*
  * the way all these entries are sorted in this array could seem
  * unlogical, but we are dependant of kernel DT_bindings,
@@ -210,114 +201,114 @@ struct clk_cfg {
  */
 
 static const struct clk_cfg clk_map[] = {
-	CLK(RCC_AHB3ENR,  31, "d1sram1"),	/* peripheral clocks */
-	CLK(RCC_AHB3ENR,  30, "itcm"),
-	CLK(RCC_AHB3ENR,  29, "dtcm2"),
-	CLK(RCC_AHB3ENR,  28, "dtcm1"),
-	CLK(RCC_AHB3ENR,   8, "flitf"),
-	CLK(RCC_AHB3ENR,   5, "jpgdec"),
-	CLK(RCC_AHB3ENR,   4, "dma2d"),
-	CLK(RCC_AHB3ENR,   0, "mdma"),
-	CLK(RCC_AHB1ENR,  28, "usb2ulpi"),
-	CLK(RCC_AHB1ENR,  17, "eth1rx"),
-	CLK(RCC_AHB1ENR,  16, "eth1tx"),
-	CLK(RCC_AHB1ENR,  15, "eth1mac"),
-	CLK(RCC_AHB1ENR,  14, "art"),
-	CLK(RCC_AHB1ENR,  26, "usb1ulpi"),
-	CLK(RCC_AHB1ENR,   1, "dma2"),
-	CLK(RCC_AHB1ENR,   0, "dma1"),
-	CLK(RCC_AHB2ENR,  31, "d2sram3"),
-	CLK(RCC_AHB2ENR,  30, "d2sram2"),
-	CLK(RCC_AHB2ENR,  29, "d2sram1"),
-	CLK(RCC_AHB2ENR,   5, "hash"),
-	CLK(RCC_AHB2ENR,   4, "crypt"),
-	CLK(RCC_AHB2ENR,   0, "camitf"),
-	CLK(RCC_AHB4ENR,  28, "bkpram"),
-	CLK(RCC_AHB4ENR,  25, "hsem"),
-	CLK(RCC_AHB4ENR,  21, "bdma"),
-	CLK(RCC_AHB4ENR,  19, "crc"),
-	CLK(RCC_AHB4ENR,  10, "gpiok"),
-	CLK(RCC_AHB4ENR,   9, "gpioj"),
-	CLK(RCC_AHB4ENR,   8, "gpioi"),
-	CLK(RCC_AHB4ENR,   7, "gpioh"),
-	CLK(RCC_AHB4ENR,   6, "gpiog"),
-	CLK(RCC_AHB4ENR,   5, "gpiof"),
-	CLK(RCC_AHB4ENR,   4, "gpioe"),
-	CLK(RCC_AHB4ENR,   3, "gpiod"),
-	CLK(RCC_AHB4ENR,   2, "gpioc"),
-	CLK(RCC_AHB4ENR,   1, "gpiob"),
-	CLK(RCC_AHB4ENR,   0, "gpioa"),
-	CLK(RCC_APB3ENR,   6, "wwdg1"),
-	CLK(RCC_APB1LENR, 29, "dac12"),
-	CLK(RCC_APB1LENR, 11, "wwdg2"),
-	CLK(RCC_APB1LENR,  8, "tim14"),
-	CLK(RCC_APB1LENR,  7, "tim13"),
-	CLK(RCC_APB1LENR,  6, "tim12"),
-	CLK(RCC_APB1LENR,  5, "tim7"),
-	CLK(RCC_APB1LENR,  4, "tim6"),
-	CLK(RCC_APB1LENR,  3, "tim5"),
-	CLK(RCC_APB1LENR,  2, "tim4"),
-	CLK(RCC_APB1LENR,  1, "tim3"),
-	CLK(RCC_APB1LENR,  0, "tim2"),
-	CLK(RCC_APB1HENR,  5, "mdios"),
-	CLK(RCC_APB1HENR,  4, "opamp"),
-	CLK(RCC_APB1HENR,  1, "crs"),
-	CLK(RCC_APB2ENR,  18, "tim17"),
-	CLK(RCC_APB2ENR,  17, "tim16"),
-	CLK(RCC_APB2ENR,  16, "tim15"),
-	CLK(RCC_APB2ENR,   1, "tim8"),
-	CLK(RCC_APB2ENR,   0, "tim1"),
-	CLK(RCC_APB4ENR,  26, "tmpsens"),
-	CLK(RCC_APB4ENR,  16, "rtcapb"),
-	CLK(RCC_APB4ENR,  15, "vref"),
-	CLK(RCC_APB4ENR,  14, "comp12"),
-	CLK(RCC_APB4ENR,   1, "syscfg"),
-	CLK(RCC_AHB3ENR,  16, "sdmmc1"),	/* kernel clocks */
-	CLK(RCC_AHB3ENR,  14, "quadspi"),
-	CLK(RCC_AHB3ENR,  12, "fmc"),
-	CLK(RCC_AHB1ENR,  27, "usb2otg"),
-	CLK(RCC_AHB1ENR,  25, "usb1otg"),
-	CLK(RCC_AHB1ENR,   5, "adc12"),
-	CLK(RCC_AHB2ENR,   9, "sdmmc2"),
-	CLK(RCC_AHB2ENR,   6, "rng"),
-	CLK(RCC_AHB4ENR,  24, "adc3"),
-	CLK(RCC_APB3ENR,   4, "dsi"),
-	CLK(RCC_APB3ENR,   3, "ltdc"),
-	CLK(RCC_APB1LENR, 31, "usart8"),
-	CLK(RCC_APB1LENR, 30, "usart7"),
-	CLK(RCC_APB1LENR, 27, "hdmicec"),
-	CLK(RCC_APB1LENR, 23, "i2c3"),
-	CLK(RCC_APB1LENR, 22, "i2c2"),
-	CLK(RCC_APB1LENR, 21, "i2c1"),
-	CLK(RCC_APB1LENR, 20, "uart5"),
-	CLK(RCC_APB1LENR, 19, "uart4"),
-	CLK(RCC_APB1LENR, 18, "usart3"),
-	CLK(RCC_APB1LENR, 17, "usart2"),
-	CLK(RCC_APB1LENR, 16, "spdifrx"),
-	CLK(RCC_APB1LENR, 15, "spi3"),
-	CLK(RCC_APB1LENR, 14, "spi2"),
-	CLK(RCC_APB1LENR,  9, "lptim1"),
-	CLK(RCC_APB1HENR,  8, "fdcan"),
-	CLK(RCC_APB1HENR,  2, "swp"),
-	CLK(RCC_APB2ENR,  29, "hrtim"),
-	CLK(RCC_APB2ENR,  28, "dfsdm1"),
-	CLK(RCC_APB2ENR,  24, "sai3"),
-	CLK(RCC_APB2ENR,  23, "sai2"),
-	CLK(RCC_APB2ENR,  22, "sai1"),
-	CLK(RCC_APB2ENR,  20, "spi5"),
-	CLK(RCC_APB2ENR,  13, "spi4"),
-	CLK(RCC_APB2ENR,  12, "spi1"),
-	CLK(RCC_APB2ENR,   5, "usart6"),
-	CLK(RCC_APB2ENR,   4, "usart1"),
-	CLK(RCC_APB4ENR,  21, "sai4a"),
-	CLK(RCC_APB4ENR,  21, "sai4b"),
-	CLK(RCC_APB4ENR,  12, "lptim5"),
-	CLK(RCC_APB4ENR,  11, "lptim4"),
-	CLK(RCC_APB4ENR,  10, "lptim3"),
-	CLK(RCC_APB4ENR,   9, "lptim2"),
-	CLK(RCC_APB4ENR,   7, "i2c4"),
-	CLK(RCC_APB4ENR,   5,  "spi6"),
-	CLK(RCC_APB4ENR,   3, "lpuart1"),
+	{RCC_AHB3ENR,  31, "d1sram1"},	/* peripheral clocks */
+	{RCC_AHB3ENR,  30, "itcm"},
+	{RCC_AHB3ENR,  29, "dtcm2"},
+	{RCC_AHB3ENR,  28, "dtcm1"},
+	{RCC_AHB3ENR,   8, "flitf"},
+	{RCC_AHB3ENR,   5, "jpgdec"},
+	{RCC_AHB3ENR,   4, "dma2d"},
+	{RCC_AHB3ENR,   0, "mdma"},
+	{RCC_AHB1ENR,  28, "usb2ulpi"},
+	{RCC_AHB1ENR,  17, "eth1rx"},
+	{RCC_AHB1ENR,  16, "eth1tx"},
+	{RCC_AHB1ENR,  15, "eth1mac"},
+	{RCC_AHB1ENR,  14, "art"},
+	{RCC_AHB1ENR,  26, "usb1ulpi"},
+	{RCC_AHB1ENR,   1, "dma2"},
+	{RCC_AHB1ENR,   0, "dma1"},
+	{RCC_AHB2ENR,  31, "d2sram3"},
+	{RCC_AHB2ENR,  30, "d2sram2"},
+	{RCC_AHB2ENR,  29, "d2sram1"},
+	{RCC_AHB2ENR,   5, "hash"},
+	{RCC_AHB2ENR,   4, "crypt"},
+	{RCC_AHB2ENR,   0, "camitf"},
+	{RCC_AHB4ENR,  28, "bkpram"},
+	{RCC_AHB4ENR,  25, "hsem"},
+	{RCC_AHB4ENR,  21, "bdma"},
+	{RCC_AHB4ENR,  19, "crc"},
+	{RCC_AHB4ENR,  10, "gpiok"},
+	{RCC_AHB4ENR,   9, "gpioj"},
+	{RCC_AHB4ENR,   8, "gpioi"},
+	{RCC_AHB4ENR,   7, "gpioh"},
+	{RCC_AHB4ENR,   6, "gpiog"},
+	{RCC_AHB4ENR,   5, "gpiof"},
+	{RCC_AHB4ENR,   4, "gpioe"},
+	{RCC_AHB4ENR,   3, "gpiod"},
+	{RCC_AHB4ENR,   2, "gpioc"},
+	{RCC_AHB4ENR,   1, "gpiob"},
+	{RCC_AHB4ENR,   0, "gpioa"},
+	{RCC_APB3ENR,   6, "wwdg1"},
+	{RCC_APB1LENR, 29, "dac12"},
+	{RCC_APB1LENR, 11, "wwdg2"},
+	{RCC_APB1LENR,  8, "tim14"},
+	{RCC_APB1LENR,  7, "tim13"},
+	{RCC_APB1LENR,  6, "tim12"},
+	{RCC_APB1LENR,  5, "tim7"},
+	{RCC_APB1LENR,  4, "tim6"},
+	{RCC_APB1LENR,  3, "tim5"},
+	{RCC_APB1LENR,  2, "tim4"},
+	{RCC_APB1LENR,  1, "tim3"},
+	{RCC_APB1LENR,  0, "tim2"},
+	{RCC_APB1HENR,  5, "mdios"},
+	{RCC_APB1HENR,  4, "opamp"},
+	{RCC_APB1HENR,  1, "crs"},
+	{RCC_APB2ENR,  18, "tim17"},
+	{RCC_APB2ENR,  17, "tim16"},
+	{RCC_APB2ENR,  16, "tim15"},
+	{RCC_APB2ENR,   1, "tim8"},
+	{RCC_APB2ENR,   0, "tim1"},
+	{RCC_APB4ENR,  26, "tmpsens"},
+	{RCC_APB4ENR,  16, "rtcapb"},
+	{RCC_APB4ENR,  15, "vref"},
+	{RCC_APB4ENR,  14, "comp12"},
+	{RCC_APB4ENR,   1, "syscfg"},
+	{RCC_AHB3ENR,  16, "sdmmc1"},	/* kernel clocks */
+	{RCC_AHB3ENR,  14, "quadspi"},
+	{RCC_AHB3ENR,  12, "fmc"},
+	{RCC_AHB1ENR,  27, "usb2otg"},
+	{RCC_AHB1ENR,  25, "usb1otg"},
+	{RCC_AHB1ENR,   5, "adc12"},
+	{RCC_AHB2ENR,   9, "sdmmc2"},
+	{RCC_AHB2ENR,   6, "rng"},
+	{RCC_AHB4ENR,  24, "adc3"},
+	{RCC_APB3ENR,   4, "dsi"},
+	{RCC_APB3ENR,   3, "ltdc"},
+	{RCC_APB1LENR, 31, "usart8"},
+	{RCC_APB1LENR, 30, "usart7"},
+	{RCC_APB1LENR, 27, "hdmicec"},
+	{RCC_APB1LENR, 23, "i2c3"},
+	{RCC_APB1LENR, 22, "i2c2"},
+	{RCC_APB1LENR, 21, "i2c1"},
+	{RCC_APB1LENR, 20, "uart5"},
+	{RCC_APB1LENR, 19, "uart4"},
+	{RCC_APB1LENR, 18, "usart3"},
+	{RCC_APB1LENR, 17, "usart2"},
+	{RCC_APB1LENR, 16, "spdifrx"},
+	{RCC_APB1LENR, 15, "spi3"},
+	{RCC_APB1LENR, 14, "spi2"},
+	{RCC_APB1LENR,  9, "lptim1"},
+	{RCC_APB1HENR,  8, "fdcan"},
+	{RCC_APB1HENR,  2, "swp"},
+	{RCC_APB2ENR,  29, "hrtim"},
+	{RCC_APB2ENR,  28, "dfsdm1"},
+	{RCC_APB2ENR,  24, "sai3"},
+	{RCC_APB2ENR,  23, "sai2"},
+	{RCC_APB2ENR,  22, "sai1"},
+	{RCC_APB2ENR,  20, "spi5"},
+	{RCC_APB2ENR,  13, "spi4"},
+	{RCC_APB2ENR,  12, "spi1"},
+	{RCC_APB2ENR,   5, "usart6"},
+	{RCC_APB2ENR,   4, "usart1"},
+	{RCC_APB4ENR,  21, "sai4a"},
+	{RCC_APB4ENR,  21, "sai4b"},
+	{RCC_APB4ENR,  12, "lptim5"},
+	{RCC_APB4ENR,  11, "lptim4"},
+	{RCC_APB4ENR,  10, "lptim3"},
+	{RCC_APB4ENR,   9, "lptim2"},
+	{RCC_APB4ENR,   7, "i2c4"},
+	{RCC_APB4ENR,   5,  "spi6"},
+	{RCC_APB4ENR,   3, "lpuart1"},
 };
 
 struct stm32_clk {
@@ -346,6 +337,11 @@ struct pll_psc sys_pll_psc = {
 	.divr = 2,
 };
 
+enum apb {
+	APB1,
+	APB2,
+};
+
 int configure_clocks(struct udevice *dev)
 {
 	struct stm32_clk *priv = dev_get_priv(dev);
@@ -368,11 +364,11 @@ int configure_clocks(struct udevice *dev)
 	writel(0x0, &regs->d2ccip1r);
 	writel(0x0, &regs->d2ccip2r);
 
-	/* Set voltage scaling at scale 1 */
+	/* Set voltage scaling at scale 1 (1,15 - 1,26 Volts) */
 	clrsetbits_le32(pwr_base + PWR_D3CR, PWR_D3CR_VOS_MASK,
 			VOS_SCALE_1 << PWR_D3CR_VOS_SHIFT);
-	/* disable step down converter */
-	clrbits_le32(pwr_base + PWR_CR3, PWR_CR3_SDEN);
+	/* Lock supply configuration update */
+	clrbits_le32(pwr_base + PWR_CR3, PWR_CR3_SCUEN);
 	while (!(readl(pwr_base + PWR_D3CR) & PWR_D3CR_VOSREADY))
 		;
 
@@ -472,13 +468,13 @@ static ulong stm32_get_rate(struct stm32_rcc_regs *regs, enum pllsrc pllsrc)
 	clk.id = 0;
 	ret = uclass_get_device_by_name(UCLASS_CLK, name, &fixed_clock_dev);
 	if (ret) {
-		error("Can't find clk %s (%d)", name, ret);
+		pr_err("Can't find clk %s (%d)", name, ret);
 		return 0;
 	}
 
 	ret = clk_request(fixed_clock_dev, &clk);
 	if (ret) {
-		error("Can't request %s clk (%d)", name, ret);
+		pr_err("Can't request %s clk (%d)", name, ret);
 		return 0;
 	}
 
@@ -518,7 +514,7 @@ static u32 stm32_get_PLL1_rate(struct stm32_rcc_regs *regs,
 		break;
 	case RCC_PLLCKSELR_PLLSRC_NO_CLK:
 		/* shouldn't happen */
-		error("wrong value for RCC_PLLCKSELR register\n");
+		pr_err("wrong value for RCC_PLLCKSELR register\n");
 		pllsrc = 0;
 		break;
 	}
@@ -569,13 +565,74 @@ static u32 stm32_get_PLL1_rate(struct stm32_rcc_regs *regs,
 	return -EINVAL;
 }
 
+static u32 stm32_get_apb_psc(struct stm32_rcc_regs *regs, enum apb apb)
+{
+	u16 prescaler_table[8] = {2, 4, 8, 16, 64, 128, 256, 512};
+	u32 d2cfgr = readl(&regs->d2cfgr);
+
+	if (apb == APB1) {
+		if (d2cfgr & RCC_D2CFGR_D2PPRE1_DIVIDED)
+			/* get D2 domain APB1 prescaler */
+			return prescaler_table[
+				((d2cfgr & RCC_D2CFGR_D2PPRE1_DIVIDER)
+				>> RCC_D2CFGR_D2PPRE1_SHIFT)];
+	} else  { /* APB2 */
+		if (d2cfgr & RCC_D2CFGR_D2PPRE2_DIVIDED)
+			/* get D2 domain APB2 prescaler */
+			return prescaler_table[
+				((d2cfgr & RCC_D2CFGR_D2PPRE2_DIVIDER)
+				>> RCC_D2CFGR_D2PPRE2_SHIFT)];
+	}
+
+	return 1;
+};
+
+static u32 stm32_get_timer_rate(struct stm32_clk *priv, u32 sysclk,
+				enum apb apb)
+{
+	struct stm32_rcc_regs *regs = priv->rcc_base;
+u32 psc = stm32_get_apb_psc(regs, apb);
+
+	if (readl(&regs->cfgr) & RCC_CFGR_TIMPRE)
+		/*
+		 * if APB prescaler is configured to a
+		 * division factor of 1, 2 or 4
+		 */
+		switch (psc) {
+		case 1:
+		case 2:
+		case 4:
+			return sysclk;
+		case 8:
+			return sysclk / 2;
+		case 16:
+			return sysclk / 4;
+		default:
+			pr_err("unexpected prescaler value (%d)\n", psc);
+			return 0;
+		}
+	else
+		switch (psc) {
+		case 1:
+			return sysclk;
+		case 2:
+		case 4:
+		case 8:
+		case 16:
+			return sysclk / psc;
+		default:
+			pr_err("unexpected prescaler value (%d)\n", psc);
+			return 0;
+		}
+};
+
 static ulong stm32_clk_get_rate(struct clk *clk)
 {
 	struct stm32_clk *priv = dev_get_priv(clk->dev);
 	struct stm32_rcc_regs *regs = priv->rcc_base;
 	ulong sysclk = 0;
 	u32 gate_offset;
-	u32 d1cfgr;
+	u32 d1cfgr, d3cfgr;
 	/* prescaler table lookups for clock computation */
 	u16 prescaler_table[8] = {2, 4, 8, 16, 64, 128, 256, 512};
 	u8 source, idx;
@@ -652,9 +709,10 @@ static ulong stm32_clk_get_rate(struct clk *clk)
 		break;
 
 	case RCC_APB4ENR:
-		if (d1cfgr & RCC_D3CFGR_D3PPRE_DIVIDED) {
+		d3cfgr = readl(&regs->d3cfgr);
+		if (d3cfgr & RCC_D3CFGR_D3PPRE_DIVIDED) {
 			/* get D3 domain APB4 prescaler */
-			idx = (d1cfgr & RCC_D3CFGR_D3PPRE_DIVIDER) >>
+			idx = (d3cfgr & RCC_D3CFGR_D3PPRE_DIVIDER) >>
 			      RCC_D3CFGR_D3PPRE_SHIFT;
 			sysclk = sysclk / prescaler_table[idx];
 		}
@@ -667,35 +725,46 @@ static ulong stm32_clk_get_rate(struct clk *clk)
 
 	case RCC_APB1LENR:
 	case RCC_APB1HENR:
-		if (d1cfgr & RCC_D2CFGR_D2PPRE1_DIVIDED) {
-			/* get D2 domain APB1 prescaler */
-			idx = (d1cfgr & RCC_D2CFGR_D2PPRE1_DIVIDER) >>
-			      RCC_D2CFGR_D2PPRE1_SHIFT;
-			sysclk = sysclk / prescaler_table[idx];
+		/* special case for GPT timers */
+		switch (clk->id) {
+		case TIM14_CK:
+		case TIM13_CK:
+		case TIM12_CK:
+		case TIM7_CK:
+		case TIM6_CK:
+		case TIM5_CK:
+		case TIM4_CK:
+		case TIM3_CK:
+		case TIM2_CK:
+			return stm32_get_timer_rate(priv, sysclk, APB1);
 		}
 
 		debug("%s system clock: freq after APB1 prescaler = %ld\n",
 		      __func__, sysclk);
 
-		return sysclk;
+		return (sysclk / stm32_get_apb_psc(regs, APB1));
 		break;
 
 	case RCC_APB2ENR:
-		if (d1cfgr & RCC_D2CFGR_D2PPRE2_DIVIDED) {
-			/* get D2 domain APB1 prescaler */
-			idx = (d1cfgr & RCC_D2CFGR_D2PPRE2_DIVIDER) >>
-			      RCC_D2CFGR_D2PPRE2_SHIFT;
-			sysclk = sysclk / prescaler_table[idx];
+		/* special case for timers */
+		switch (clk->id) {
+		case TIM17_CK:
+		case TIM16_CK:
+		case TIM15_CK:
+		case TIM8_CK:
+		case TIM1_CK:
+			return stm32_get_timer_rate(priv, sysclk, APB2);
 		}
 
 		debug("%s system clock: freq after APB2 prescaler = %ld\n",
 		      __func__, sysclk);
 
-		return sysclk;
+		return (sysclk / stm32_get_apb_psc(regs, APB2));
+
 		break;
 
 	default:
-		error("unexpected gate_offset value (0x%x)\n", gate_offset);
+		pr_err("unexpected gate_offset value (0x%x)\n", gate_offset);
 		return -EINVAL;
 		break;
 	}
@@ -739,13 +808,13 @@ static int stm32_clk_probe(struct udevice *dev)
 					   "st,syscfg", &syscon);
 
 	if (err) {
-		error("unable to find syscon device\n");
+		pr_err("unable to find syscon device\n");
 		return err;
 	}
 
 	priv->pwr_regmap = syscon_get_regmap(syscon);
 	if (!priv->pwr_regmap) {
-		error("unable to find regmap\n");
+		pr_err("unable to find regmap\n");
 		return -ENODEV;
 	}
 

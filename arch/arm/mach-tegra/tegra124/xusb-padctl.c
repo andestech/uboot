@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2014-2015, NVIDIA CORPORATION.  All rights reserved.
- *
- * SPDX-License-Identifier: GPL-2.0
  */
 
 #define pr_fmt(fmt) "tegra-xusb-padctl: " fmt
@@ -137,7 +136,7 @@ static int tegra_xusb_padctl_disable(struct tegra_xusb_padctl *padctl)
 	u32 value;
 
 	if (padctl->enable == 0) {
-		error("unbalanced enable/disable");
+		pr_err("unbalanced enable/disable");
 		return 0;
 	}
 

@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2015 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -10,8 +9,6 @@
 #include <os.h>
 #include <scsi.h>
 #include <usb.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * This driver emulates a flash stick using the UFI command specification and
@@ -390,8 +387,7 @@ static int sandbox_flash_bind(struct udevice *dev)
 	fs[2].id = STRINGID_SERIAL;
 	fs[2].s = dev->name;
 
-	return usb_emul_setup_device(dev, PACKET_SIZE_64, plat->flash_strings,
-				     flash_desc_list);
+	return usb_emul_setup_device(dev, plat->flash_strings, flash_desc_list);
 }
 
 static int sandbox_flash_probe(struct udevice *dev)

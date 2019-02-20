@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2012 Bluegiga Technologies Oy
  *
@@ -8,18 +9,14 @@
  * Based on m28evk.h:
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef __CONFIGS_APX4DEVKIT_H__
 #define __CONFIGS_APX4DEVKIT_H__
 
 /* System configurations */
-#define CONFIG_MX28				/* i.MX28 SoC */
 #define CONFIG_MACH_TYPE	MACH_TYPE_APX4DEVKIT
 
 /* Memory configuration */
-#define CONFIG_NR_DRAM_BANKS		1		/* 1 bank of DRAM */
 #define PHYS_SDRAM_1			0x40000000	/* Base address */
 #define PHYS_SDRAM_1_SIZE		0x20000000	/* Max 512 MB RAM */
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
@@ -46,15 +43,6 @@
 #endif
 
 /* UBI and NAND partitioning */
-#ifdef CONFIG_CMD_NAND
-#define CONFIG_MTD_DEVICE
-#define CONFIG_MTD_PARTITIONS
-#define MTDIDS_DEFAULT			"nand0=gpmi-nand"
-#define MTDPARTS_DEFAULT \
-	"mtdparts=gpmi-nand:128k(bootstrap),1024k(boot),768k(env),-(root)"
-#else
-#define MTDPARTS_DEFAULT		""
-#endif
 
 /* FEC Ethernet on SoC */
 #ifdef CONFIG_CMD_NET
@@ -80,7 +68,7 @@
 
 /* Extra Environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
 	"verify=no\0" \
 	"bootcmd=run bootcmd_nand\0" \
 	"kernelargs=console=tty0 console=ttyAMA0,115200 consoleblank=0\0" \

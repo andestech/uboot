@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2000
  * Paolo Scaffardi, AIRVENT SAM s.p.a - RIMINI(ITALY), arsenio@tin.it
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -197,20 +196,21 @@ static int console_tstc(int file)
 {
 	int i, ret;
 	struct stdio_dev *dev;
+	int prev;
 
-	disable_ctrlc(1);
+	prev = disable_ctrlc(1);
 	for (i = 0; i < cd_count[file]; i++) {
 		dev = console_devices[file][i];
 		if (dev->tstc != NULL) {
 			ret = dev->tstc(dev);
 			if (ret > 0) {
 				tstcdev = dev;
-				disable_ctrlc(0);
+				disable_ctrlc(prev);
 				return ret;
 			}
 		}
 	}
-	disable_ctrlc(0);
+	disable_ctrlc(prev);
 
 	return 0;
 }
@@ -311,12 +311,12 @@ int serial_printf(const char *fmt, ...)
 int fgetc(int file)
 {
 	if (file < MAX_FILES) {
-#if CONFIG_IS_ENABLED(CONSOLE_MUX)
 		/*
 		 * Effectively poll for input wherever it may be available.
 		 */
 		for (;;) {
 			WATCHDOG_RESET();
+#if CONFIG_IS_ENABLED(CONSOLE_MUX)
 			/*
 			 * Upper layer may have already called tstc() so
 			 * check for that first.
@@ -324,6 +324,10 @@ int fgetc(int file)
 			if (tstcdev != NULL)
 				return console_getc(file);
 			console_tstc(file);
+#else
+			if (console_tstc(file))
+				return console_getc(file);
+#endif
 #ifdef CONFIG_WATCHDOG
 			/*
 			 * If the watchdog must be rate-limited then it should
@@ -332,9 +336,6 @@ int fgetc(int file)
 			 udelay(1);
 #endif
 		}
-#else
-		return console_getc(file);
-#endif
 	}
 
 	return -1;
@@ -450,6 +451,12 @@ static void pre_console_putc(const char c)
 	unmap_sysmem(buffer);
 }
 
+static void pre_console_puts(const char *s)
+{
+	while (*s)
+		pre_console_putc(*s++);
+}
+
 static void print_pre_console_buffer(int flushpoint)
 {
 	unsigned long in = 0, out = 0;
@@ -477,11 +484,19 @@ static void print_pre_console_buffer(int flushpoint)
 }
 #else
 static inline void pre_console_putc(const char c) {}
+static inline void pre_console_puts(const char *s) {}
 static inline void print_pre_console_buffer(int flushpoint) {}
 #endif
 
 void putc(const char c)
 {
+#ifdef CONFIG_SANDBOX
+	/* sandbox can send characters to stdout before it has a console */
+	if (!gd || !(gd->flags & GD_FLG_SERIAL_READY)) {
+		os_putc(c);
+		return;
+	}
+#endif
 #ifdef CONFIG_DEBUG_UART
 	/* if we don't have a console yet, use the debug UART */
 	if (!gd || !(gd->flags & GD_FLG_SERIAL_READY)) {
@@ -489,8 +504,10 @@ void putc(const char c)
 		return;
 	}
 #endif
+	if (!gd)
+		return;
 #ifdef CONFIG_CONSOLE_RECORD
-	if (gd && (gd->flags & GD_FLG_RECORD) && gd->console_out.start)
+	if ((gd->flags & GD_FLG_RECORD) && gd->console_out.start)
 		membuff_putbyte(&gd->console_out, c);
 #endif
 #ifdef CONFIG_SILENT_CONSOLE
@@ -518,8 +535,50 @@ void putc(const char c)
 
 void puts(const char *s)
 {
-	while (*s)
-		putc(*s++);
+#ifdef CONFIG_SANDBOX
+	/* sandbox can send characters to stdout before it has a console */
+	if (!gd || !(gd->flags & GD_FLG_SERIAL_READY)) {
+		os_puts(s);
+		return;
+	}
+#endif
+#ifdef CONFIG_DEBUG_UART
+	if (!gd || !(gd->flags & GD_FLG_SERIAL_READY)) {
+		while (*s) {
+			int ch = *s++;
+
+			printch(ch);
+		}
+		return;
+	}
+#endif
+	if (!gd)
+		return;
+#ifdef CONFIG_CONSOLE_RECORD
+	if ((gd->flags & GD_FLG_RECORD) && gd->console_out.start)
+		membuff_put(&gd->console_out, s, strlen(s));
+#endif
+#ifdef CONFIG_SILENT_CONSOLE
+	if (gd->flags & GD_FLG_SILENT)
+		return;
+#endif
+
+#ifdef CONFIG_DISABLE_CONSOLE
+	if (gd->flags & GD_FLG_DISABLE_CONSOLE)
+		return;
+#endif
+
+	if (!gd->have_console)
+		return pre_console_puts(s);
+
+	if (gd->flags & GD_FLG_DEVINIT) {
+		/* Send to the standard output */
+		fputs(stdout, s);
+	} else {
+		/* Send directly to the handler */
+		pre_console_puts(s);
+		serial_puts(s);
+	}
 }
 
 #ifdef CONFIG_CONSOLE_RECORD
@@ -553,7 +612,6 @@ static int ctrlc_disabled = 0;	/* see disable_ctrl() */
 static int ctrlc_was_pressed = 0;
 int ctrlc(void)
 {
-#ifndef CONFIG_SANDBOX
 	if (!ctrlc_disabled && gd->have_console) {
 		if (tstc()) {
 			switch (getc()) {
@@ -565,7 +623,6 @@ int ctrlc(void)
 			}
 		}
 	}
-#endif
 
 	return 0;
 }
@@ -800,7 +857,7 @@ done:
 
 #ifdef CONFIG_SYS_CONSOLE_ENV_OVERWRITE
 	/* set the environment variables (will overwrite previous env settings) */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < MAX_FILES; i++) {
 		env_set(stdio_names[i], stdio_devices[i]->name);
 	}
 #endif /* CONFIG_SYS_CONSOLE_ENV_OVERWRITE */
@@ -879,7 +936,7 @@ int console_init_r(void)
 #endif /* CONFIG_SYS_CONSOLE_INFO_QUIET */
 
 	/* Setting environment variables */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < MAX_FILES; i++) {
 		env_set(stdio_names[i], stdio_devices[i]->name);
 	}
 

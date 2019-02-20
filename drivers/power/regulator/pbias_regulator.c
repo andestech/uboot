@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2016 Texas Instruments Incorporated, <www.ti.com>
  * Jean-Jacques Hiblot <jjhiblot@ti.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -15,8 +14,6 @@
 #include <linux/bitops.h>
 #include <linux/ioport.h>
 #include <dm/read.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 struct pbias_reg_info {
 	u32 enable;
@@ -70,14 +67,14 @@ static int pbias_ofdata_to_platdata(struct udevice *dev)
 	err = uclass_get_device_by_phandle(UCLASS_SYSCON, dev,
 					   "syscon", &syscon);
 	if (err) {
-		error("%s: unable to find syscon device (%d)\n", __func__,
+		pr_err("%s: unable to find syscon device (%d)\n", __func__,
 		      err);
 		return err;
 	}
 
 	regmap = syscon_get_regmap(syscon);
 	if (IS_ERR(regmap)) {
-		error("%s: unable to find regmap (%ld)\n", __func__,
+		pr_err("%s: unable to find regmap (%ld)\n", __func__,
 		      PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
@@ -85,7 +82,7 @@ static int pbias_ofdata_to_platdata(struct udevice *dev)
 
 	err = dev_read_resource(dev, 0, &res);
 	if (err) {
-		error("%s: unable to find offset (%d)\n", __func__, err);
+		pr_err("%s: unable to find offset (%d)\n", __func__, err);
 		return err;
 	}
 	priv->offset = res.start;
@@ -111,6 +108,10 @@ static struct dm_pmic_ops pbias_ops = {
 
 static const struct udevice_id pbias_ids[] = {
 	{ .compatible = "ti,pbias-dra7" },
+	{ .compatible = "ti,pbias-omap2" },
+	{ .compatible = "ti,pbias-omap3" },
+	{ .compatible = "ti,pbias-omap4" },
+	{ .compatible = "ti,pbias-omap5" },
 	{ }
 };
 
@@ -225,9 +226,6 @@ static int pbias_regulator_set_value(struct udevice *dev, int uV)
 	int rc;
 	u32 reg;
 
-	debug("Setting %s voltage to %s\n", p->name,
-	      (reg & p->vmode) ? "3.0v" : "1.8v");
-
 	rc = pmic_read(dev->parent, 0, (uint8_t *)&reg, sizeof(reg));
 	if (rc)
 		return rc;
@@ -238,6 +236,9 @@ static int pbias_regulator_set_value(struct udevice *dev, int uV)
 		reg &= ~p->vmode;
 	else
 		return -EINVAL;
+
+	debug("Setting %s voltage to %s\n", p->name,
+	      (reg & p->vmode) ? "3.0v" : "1.8v");
 
 	return pmic_write(dev->parent, 0, (uint8_t *)&reg, sizeof(reg));
 }

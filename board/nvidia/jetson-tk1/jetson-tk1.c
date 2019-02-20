@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2014
  * NVIDIA Corporation <www.nvidia.com>
- *
- * SPDX-License-Identifier:     GPL-2.0+
  */
 
 #include <common.h>
@@ -14,8 +13,6 @@
 #include <asm/arch/pinmux.h>
 
 #include "pinmux-config-jetson-tk1.h"
-
-DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * Routine: pinmux_init
@@ -49,7 +46,7 @@ static int as3722_sd_enable(struct udevice *pmic, unsigned int sd)
 
 	err = pmic_clrsetbits(pmic, AS3722_SD_CONTROL, 0, 1 << sd);
 	if (err) {
-		error("failed to update SD control register: %d", err);
+		pr_err("failed to update SD control register: %d", err);
 		return err;
 	}
 
@@ -70,13 +67,13 @@ int tegra_pcie_board_init(void)
 
 	ret = as3722_sd_enable(dev, 4);
 	if (ret < 0) {
-		error("failed to enable SD4: %d\n", ret);
+		pr_err("failed to enable SD4: %d\n", ret);
 		return ret;
 	}
 
 	ret = as3722_sd_set_voltage(dev, 4, 0x24);
 	if (ret < 0) {
-		error("failed to set SD4 voltage: %d\n", ret);
+		pr_err("failed to set SD4 voltage: %d\n", ret);
 		return ret;
 	}
 

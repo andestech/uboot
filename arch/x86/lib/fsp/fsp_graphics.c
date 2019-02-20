@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2017, Bin Meng <bmeng.cn@gmail.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -37,6 +36,10 @@ static int save_vesa_mode(struct vesa_mode_info *vesa)
 	/*
 	 * If there is no graphics info structure, bail out and keep
 	 * running on the serial console.
+	 *
+	 * Note: on some platforms (eg: Braswell), the FSP will not produce
+	 * the graphics info HOB unless you plug some cables to the display
+	 * interface (eg: HDMI) on the board.
 	 */
 	if (!ginfo) {
 		debug("FSP graphics hand-off block not found\n");

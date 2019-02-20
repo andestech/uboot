@@ -1,14 +1,11 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2015 Marek Vasut <marex@denx.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef __CONFIG_SAMTEC_VINING_FPGA_H__
 #define __CONFIG_SAMTEC_VINING_FPGA_H__
 
 #include <asm/arch/base_addr_ac5.h>
-
-#define CONFIG_HW_WATCHDOG
 
 /* Memory configurations */
 #define PHYS_SDRAM_1_SIZE		0x40000000	/* 1GiB on VINING_FPGA */
@@ -43,7 +40,7 @@
 #endif
 
 /* Extra Environment */
-#define CONFIG_HOSTNAME			socfpga_vining_fpga
+#define CONFIG_HOSTNAME			"socfpga_vining_fpga"
 
 /*
  * Active LOW GPIO buttons:
@@ -167,23 +164,12 @@
 		"else echo \"Unsupported boot mode: \"${bootmode} ; "	\
 		"fi\0"							\
 
-#define MTDPARTS_DEFAULT			\
-	"mtdparts=ff705000.spi.0:"		\
-		"1m(u-boot),"			\
-		"64k(env1),"			\
-		"64k(env2),"			\
-		"256k(samtec1),"		\
-		"256k(samtec2),"		\
-		"-(rcvrfs);"	/* Recovery */	\
-
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_ENV_SIZE_REDUND		CONFIG_ENV_SIZE
 #define CONFIG_ENV_SECT_SIZE		(64 * 1024)
 #define CONFIG_ENV_OFFSET		0x100000
 #define CONFIG_ENV_OFFSET_REDUND	\
 	(CONFIG_ENV_OFFSET + CONFIG_ENV_SECT_SIZE)
-
-#define CONFIG_MISC_INIT_R
 
 /* Support changing the prompt string */
 #define CONFIG_CMDLINE_PS_SUPPORT

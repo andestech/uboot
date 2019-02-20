@@ -1,11 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2003
  * Gerry Hamel, geh@ti.com, Texas Instruments
  *
  * (C) Copyright 2006
  * Bryan O'Donoghue, bodonoghue@codehermit.ie
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -525,7 +524,7 @@ int drv_usbtty_init (void)
 	char * tt;
 	int snlen;
 
-	/* Ger seiral number */
+	/* Get serial number */
 	sn = env_get("serial#");
 	if (!sn)
 		sn = "000000000000";

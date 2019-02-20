@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2011-12 The Chromium OS Authors.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  *
  * This file is derived from the flashrom project.
  */
@@ -182,6 +181,19 @@ static inline void spi_use_in(struct spi_trans *trans, unsigned bytes)
 {
 	trans->in += bytes;
 	trans->bytesin -= bytes;
+}
+
+static void spi_lock_down(struct ich_spi_platdata *plat, void *sbase)
+{
+	if (plat->ich_version == ICHV_7) {
+		struct ich7_spi_regs *ich7_spi = sbase;
+
+		setbits_le16(&ich7_spi->spis, SPIS_LOCK);
+	} else if (plat->ich_version == ICHV_9) {
+		struct ich9_spi_regs *ich9_spi = sbase;
+
+		setbits_le16(&ich9_spi->hsfs, HSFS_FLOCKDN);
+	}
 }
 
 static bool spi_lock_status(struct ich_spi_platdata *plat, void *sbase)
@@ -592,6 +604,12 @@ static int ich_spi_probe(struct udevice *dev)
 		return ret;
 	}
 
+	/* Lock down SPI controller settings if required */
+	if (plat->lockdown) {
+		ich_spi_config_opcode(dev);
+		spi_lock_down(plat, priv->base);
+	}
+
 	priv->cur_speed = priv->max_speed;
 
 	return 0;
@@ -661,6 +679,9 @@ static int ich_spi_ofdata_to_platdata(struct udevice *dev)
 		if (ret == 0)
 			plat->ich_version = ICHV_9;
 	}
+
+	plat->lockdown = fdtdec_get_bool(gd->fdt_blob, node,
+					 "intel,spi-lock-down");
 
 	return ret;
 }

@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2017 NXP
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <phy.h>
@@ -99,7 +98,7 @@ void fsl_rgmii_init(void)
 	ec >>= FSL_CHASSIS3_RCWSR25_EC1_PRTCL_SHIFT;
 
 	if (!ec)
-		wriop_init_dpmac_enet_if(4, PHY_INTERFACE_MODE_RGMII);
+		wriop_init_dpmac_enet_if(4, PHY_INTERFACE_MODE_RGMII_ID);
 #endif
 
 #ifdef CONFIG_SYS_FSL_EC2
@@ -108,7 +107,7 @@ void fsl_rgmii_init(void)
 	ec >>= FSL_CHASSIS3_RCWSR25_EC2_PRTCL_SHIFT;
 
 	if (!ec)
-		wriop_init_dpmac_enet_if(5, PHY_INTERFACE_MODE_RGMII);
+		wriop_init_dpmac_enet_if(5, PHY_INTERFACE_MODE_RGMII_ID);
 #endif
 }
 #endif

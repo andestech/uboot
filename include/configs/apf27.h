@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  *
  * Configuration settings for the Armadeus Project motherboard APF27
  *
  * Copyright (C) 2008-2013 Eric Jarrige <eric.jarrige@armadeus.org>
- *
- * SPDX-License-Identifier:    GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -39,22 +38,16 @@
 /*
  * BOOTP options
  */
-#define CONFIG_BOOTP_SUBNETMASK
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
-#define CONFIG_BOOTP_BOOTPATH
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 
-#define CONFIG_HOSTNAME	CONFIG_BOARD_NAME
+#define CONFIG_HOSTNAME	"apf27"
 #define CONFIG_ROOTPATH	"/tftpboot/" __stringify(CONFIG_BOARD_NAME) "-root"
 
 /*
  * Memory configurations
  */
 #define CONFIG_NR_DRAM_POPULATED 1
-#define CONFIG_NR_DRAM_BANKS	2
 
 #define ACFG_SDRAM_MBYTE_SYZE 64
 
@@ -67,8 +60,6 @@
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_SDRAM_BASE	\
 		+ PHYS_SDRAM_1_SIZE - 0x0100000)
-
-#define CONFIG_SYS_TEXT_BASE		0xA0000800
 
 /*
  * FLASH organization
@@ -87,27 +78,12 @@
 #define	CONFIG_KERNEL_OFFSET		0x00300000
 #define	CONFIG_ROOTFS_OFFSET		0x00800000
 
-#define CONFIG_MTDMAP			"mxc_nand.0"
-#define MTDIDS_DEFAULT			"nand0=" CONFIG_MTDMAP
-#define MTDPARTS_DEFAULT	"mtdparts=" CONFIG_MTDMAP \
-				":1M(u-boot)ro," \
-				"512K(env)," \
-				"512K(env2)," \
-				"512K(firmware)," \
-				"512K(dtb)," \
-				"5M(kernel)," \
-				"-(rootfs)"
-
 /*
  * U-Boot general configurations
  */
-#define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_CBSIZE		2048		/* console I/O buffer */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 						/* Boot argument buffer size */
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_ENV_VARS_UBOOT_CONFIG
 #define CONFIG_PREBOOT			"run check_flash check_env;"
 
 /*
@@ -134,7 +110,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"env_version="		__stringify(CONFIG_ENV_VERSION)		"\0" \
 	"consoledev="		__stringify(ACFG_CONSOLE_DEV)		"\0" \
-	"mtdparts="		MTDPARTS_DEFAULT			"\0" \
+	"mtdparts="	 	CONFIG_MTDPARTS_DEFAULT	"\0" \
 	"partition=nand0,6\0"						\
 	"u-boot_addr="		__stringify(ACFG_MONITOR_OFFSET)	"\0" \
 	"env_addr="		__stringify(CONFIG_ENV_OFFSET)		"\0" \
@@ -177,13 +153,7 @@
  * Serial Driver
  */
 #define CONFIG_MXC_UART
-#define CONFIG_CONS_INDEX		1
 #define CONFIG_MXC_UART_BASE		UART1_BASE
-
-/*
- * GPIO
- */
-#define CONFIG_MXC_GPIO
 
 /*
  * NOR
@@ -192,7 +162,6 @@
 /*
  * NAND
  */
-#define CONFIG_NAND_MXC
 
 #define CONFIG_MXC_NAND_REGS_BASE	0xD8000000
 #define CONFIG_SYS_NAND_BASE		CONFIG_MXC_NAND_REGS_BASE
@@ -200,7 +169,6 @@
 
 #define CONFIG_MXC_NAND_HWECC
 #define CONFIG_SYS_NAND_LARGEPAGE
-#define CONFIG_SYS_NAND_BUSWIDTH_16BIT
 #define CONFIG_SYS_NAND_PAGE_SIZE	2048
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(128 * 1024)
 #define CONFIG_SYS_NAND_PAGE_COUNT	CONFIG_SYS_NAND_BLOCK_SIZE / \
@@ -215,26 +183,17 @@
 /*
  * Partitions & Filsystems
  */
-#define CONFIG_MTD_DEVICE
-#define CONFIG_MTD_PARTITIONS
-#define CONFIG_SUPPORT_VFAT
 
 /*
  * Ethernet (on SOC imx FEC)
  */
 #define CONFIG_FEC_MXC
 #define CONFIG_FEC_MXC_PHYADDR		0x1f
-#define CONFIG_MII				/* MII PHY management	*/
 
 /*
  * FPGA
  */
-#ifndef CONFIG_SPL_BUILD
-#define CONFIG_FPGA
-#endif
 #define CONFIG_FPGA_COUNT		1
-#define CONFIG_FPGA_XILINX
-#define CONFIG_FPGA_SPARTAN3
 #define CONFIG_SYS_FPGA_WAIT		250 /* 250 ms */
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
 #define CONFIG_SYS_FPGA_CHECK_CTRLC

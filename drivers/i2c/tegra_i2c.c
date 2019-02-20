@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
  * Copyright (c) 2010-2011 NVIDIA Corporation
  *  NVIDIA Corporation <www.nvidia.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -19,8 +18,6 @@
 #endif
 #include <asm/arch/gpio.h>
 #include <asm/arch-tegra/tegra_i2c.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 enum i2c_type {
 	TYPE_114,
@@ -372,12 +369,12 @@ static int tegra_i2c_probe(struct udevice *dev)
 
 	ret = reset_get_by_name(dev, "i2c", &i2c_bus->reset_ctl);
 	if (ret) {
-		error("reset_get_by_name() failed: %d\n", ret);
+		pr_err("reset_get_by_name() failed: %d\n", ret);
 		return ret;
 	}
 	ret = clk_get_by_name(dev, "div-clk", &i2c_bus->clk);
 	if (ret) {
-		error("clk_get_by_name() failed: %d\n", ret);
+		pr_err("clk_get_by_name() failed: %d\n", ret);
 		return ret;
 	}
 

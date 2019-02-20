@@ -1,26 +1,26 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2017 NXP
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <command.h>
 #include <netdev.h>
 #include <asm/io.h>
 #include <asm/arch/fsl_serdes.h>
 #include <hwconfig.h>
 #include <fsl_mdio.h>
 #include <malloc.h>
+#include <phy.h>
 #include <fm_eth.h>
 #include <i2c.h>
 #include <miiphy.h>
+#include <fsl-mc/fsl_mc.h>
 #include <fsl-mc/ldpaa_wriop.h>
 
 #include "../common/qixis.h"
 
 #include "ls1088a_qixis.h"
-
-#define MC_BOOT_ENV_VAR "mcinitcmd"
 
 #ifdef CONFIG_FSL_MC_ENET
 
@@ -487,16 +487,16 @@ void ls1088a_handle_phy_interface_sgmii(int dpmac_id)
 	case 0x3A:
 		switch (dpmac_id) {
 		case 1:
-			wriop_set_phy_address(dpmac_id, riser_phy_addr[1]);
+			wriop_set_phy_address(dpmac_id, 0, riser_phy_addr[1]);
 			break;
 		case 2:
-			wriop_set_phy_address(dpmac_id, riser_phy_addr[0]);
+			wriop_set_phy_address(dpmac_id, 0, riser_phy_addr[0]);
 			break;
 		case 3:
-			wriop_set_phy_address(dpmac_id, riser_phy_addr[3]);
+			wriop_set_phy_address(dpmac_id, 0, riser_phy_addr[3]);
 			break;
 		case 7:
-			wriop_set_phy_address(dpmac_id, riser_phy_addr[2]);
+			wriop_set_phy_address(dpmac_id, 0, riser_phy_addr[2]);
 			break;
 		default:
 			printf("WRIOP: Wrong DPMAC%d set to SGMII", dpmac_id);
@@ -532,13 +532,13 @@ void ls1088a_handle_phy_interface_qsgmii(int dpmac_id)
 		case 4:
 		case 5:
 		case 6:
-			wriop_set_phy_address(dpmac_id, dpmac_id + 9);
+			wriop_set_phy_address(dpmac_id, 0, dpmac_id + 9);
 			break;
 		case 7:
 		case 8:
 		case 9:
 		case 10:
-			wriop_set_phy_address(dpmac_id, dpmac_id + 1);
+			wriop_set_phy_address(dpmac_id, 0, dpmac_id + 1);
 			break;
 		}
 
@@ -567,7 +567,7 @@ void ls1088a_handle_phy_interface_xsgmii(int i)
 	case 0x15:
 	case 0x1D:
 	case 0x1E:
-		wriop_set_phy_address(i, i + 26);
+		wriop_set_phy_address(i, 0, i + 26);
 		ls1088a_qds_enable_SFP_TX(SFP_TX);
 		break;
 	default:
@@ -590,13 +590,13 @@ static void ls1088a_handle_phy_interface_rgmii(int dpmac_id)
 
 	switch (dpmac_id) {
 	case 4:
-		wriop_set_phy_address(dpmac_id, RGMII_PHY1_ADDR);
+		wriop_set_phy_address(dpmac_id, 0, RGMII_PHY1_ADDR);
 		dpmac_info[dpmac_id].board_mux = EMI1_RGMII1;
 		bus = mii_dev_for_muxval(EMI1_RGMII1);
 		wriop_set_mdio(dpmac_id, bus);
 		break;
 	case 5:
-		wriop_set_phy_address(dpmac_id, RGMII_PHY2_ADDR);
+		wriop_set_phy_address(dpmac_id, 0, RGMII_PHY2_ADDR);
 		dpmac_info[dpmac_id].board_mux = EMI1_RGMII2;
 		bus = mii_dev_for_muxval(EMI1_RGMII2);
 		wriop_set_mdio(dpmac_id, bus);
@@ -612,7 +612,6 @@ static void ls1088a_handle_phy_interface_rgmii(int dpmac_id)
 int board_eth_init(bd_t *bis)
 {
 	int error = 0, i;
-	char *mc_boot_env_var;
 #ifdef CONFIG_FSL_MC_ENET
 	struct memac_mdio_info *memac_mdio0_info;
 	char *env_hwconfig = env_get("hwconfig");
@@ -636,6 +635,7 @@ int board_eth_init(bd_t *bis)
 	for (i = WRIOP1_DPMAC1; i < NUM_WRIOP_PORTS; i++) {
 		switch (wriop_get_enet_if(i)) {
 		case PHY_INTERFACE_MODE_RGMII:
+		case PHY_INTERFACE_MODE_RGMII_ID:
 			ls1088a_handle_phy_interface_rgmii(i);
 			break;
 		case PHY_INTERFACE_MODE_QSGMII:
@@ -655,9 +655,6 @@ int board_eth_init(bd_t *bis)
 		}
 	}
 
-	mc_boot_env_var = env_get(MC_BOOT_ENV_VAR);
-	if (mc_boot_env_var)
-		run_command_list(mc_boot_env_var, -1, 0);
 	error = cpu_eth_init(bis);
 
 	if (hwconfig_f("xqsgmii", env_hwconfig)) {
@@ -681,3 +678,10 @@ int board_eth_init(bd_t *bis)
 	error = pci_eth_init(bis);
 	return error;
 }
+
+#if defined(CONFIG_RESET_PHY_R)
+void reset_phy(void)
+{
+	mc_env_boot();
+}
+#endif /* CONFIG_RESET_PHY_R */

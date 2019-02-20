@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2000-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef _PART_H
 #define _PART_H
@@ -172,6 +171,21 @@ int blk_get_device_by_str(const char *ifname, const char *dev_str,
 int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 			    struct blk_desc **dev_desc,
 			    disk_partition_t *info, int allow_whole_dev);
+
+/**
+ * part_get_info_by_name_type() - Search for a partition by name
+ *                                for only specified partition type
+ *
+ * @param dev_desc - block device descriptor
+ * @param gpt_name - the specified table entry name
+ * @param info - returns the disk partition info
+ * @param part_type - only search in partitions of this type
+ *
+ * @return - the partition number on match (starting on 1), -1 on no match,
+ * otherwise error
+ */
+int part_get_info_by_name_type(struct blk_desc *dev_desc, const char *name,
+			       disk_partition_t *info, int part_type);
 
 /**
  * part_get_info_by_name() - Search for a partition by name

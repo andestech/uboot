@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2015-2016 Socionext Inc.
  *   Author: Masahiro Yamada <yamada.masahiro@socionext.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __MACH_INIT_H
@@ -103,10 +102,5 @@ unsigned int uniphier_boot_device_raw(void);
 int uniphier_have_internal_stm(void);
 int uniphier_boot_from_backend(void);
 int uniphier_pin_init(const char *pinconfig_name);
-
-#undef pr_warn
-#define pr_warn(fmt, args...)	printf(fmt, ##args)
-#undef pr_err
-#define pr_err(fmt, args...)	printf(fmt, ##args)
 
 #endif /* __MACH_INIT_H */

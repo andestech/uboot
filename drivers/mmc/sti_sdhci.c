@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- *  Copyright (c) 2017
- *  Patrice Chotard <patrice.chotard@st.com>
- *
- * SPDX-License-Identifier:	GPL-2.0
+ * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
+ * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
  */
 
 #include <common.h>
@@ -43,7 +42,7 @@ static int sti_mmc_core_config(struct udevice *dev)
 	if (plat->instance) {
 		ret = reset_deassert(&plat->reset);
 		if (ret < 0) {
-			error("MMC1 deassert failed: %d", ret);
+			pr_err("MMC1 deassert failed: %d", ret);
 			return ret;
 		}
 	}

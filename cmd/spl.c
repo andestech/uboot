@@ -1,14 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2011
  * Corscience GmbH & Co. KG - Simon Schwarz <schwarz@corscience.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <command.h>
 #include <cmd_spl.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -121,9 +120,11 @@ static int spl_export(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				(void *)images.ft_addr);
 			env_set_addr("fdtargsaddr", images.ft_addr);
 			env_set_hex("fdtargslen", fdt_totalsize(images.ft_addr));
+#ifdef CONFIG_CMD_SPL_WRITE_SIZE
 			if (fdt_totalsize(images.ft_addr) >
 			    CONFIG_CMD_SPL_WRITE_SIZE)
 				puts("WARN: FDT size > CMD_SPL_WRITE_SIZE\n");
+#endif
 			break;
 #endif
 		case SPL_EXPORT_ATAGS:

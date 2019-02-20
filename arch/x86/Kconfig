@@ -112,6 +112,7 @@ source "arch/x86/cpu/braswell/Kconfig"
 source "arch/x86/cpu/broadwell/Kconfig"
 source "arch/x86/cpu/coreboot/Kconfig"
 source "arch/x86/cpu/ivybridge/Kconfig"
+source "arch/x86/cpu/efi/Kconfig"
 source "arch/x86/cpu/qemu/Kconfig"
 source "arch/x86/cpu/quark/Kconfig"
 source "arch/x86/cpu/queensbay/Kconfig"
@@ -152,6 +153,7 @@ config SMM_TSEG_SIZE
 config X86_RESET_VECTOR
 	bool
 	default n
+	select BINMAN
 
 # The following options control where the 16-bit and 32-bit init lies
 # If SPL is enabled then it normally holds this init code, and U-Boot proper
@@ -401,15 +403,6 @@ config FSP_BROKEN_HOB
 	  tell U-Boot to do some additional work to ensure U-Boot relocation
 	  do not overwrite the important boot service data which is used by
 	  FSP, otherwise the subsequent call to fsp_notify() will fail.
-
-config FSP_LOCKDOWN_SPI
-	bool
-	depends on HAVE_FSP
-	help
-	  Some Intel FSP (like Braswell) does SPI lock-down during the call
-	  to fsp_notify(INIT_PHASE_BOOT). This option should be turned on
-	  for such FSP and U-Boot will configure the SPI opcode registers
-	  before the lock-down.
 
 config ENABLE_MRC_CACHE
 	bool "Enable MRC cache"
@@ -664,6 +657,7 @@ endmenu
 
 config HAVE_ACPI_RESUME
 	bool "Enable ACPI S3 resume"
+	select ENABLE_MRC_CACHE
 	help
 	  Select this to enable ACPI S3 resume. S3 is an ACPI-defined sleeping
 	  state where all system context is lost except system memory. U-Boot
@@ -677,7 +671,6 @@ config HAVE_ACPI_RESUME
 config S3_VGA_ROM_RUN
 	bool "Re-run VGA option ROMs on S3 resume"
 	depends on HAVE_ACPI_RESUME
-	default y if HAVE_ACPI_RESUME
 	help
 	  Execute VGA option ROMs in U-Boot when resuming from S3. Normally
 	  this is needed when graphics console is being used in the kernel.
@@ -736,12 +729,27 @@ config PCIE_ECAM_SIZE
 	  maximum number of PCI buses as defined by the PCI specification.
 
 config I8259_PIC
-	bool
+	bool "Enable Intel 8259 compatible interrupt controller"
 	default y
 	help
 	  Intel 8259 ISA compatible chipset incorporates two 8259 (master and
 	  slave) interrupt controllers. Include this to have U-Boot set up
 	  the interrupt correctly.
+
+config APIC
+	bool "Enable Intel Advanced Programmable Interrupt Controller"
+	default y
+	help
+	  The (A)dvanced (P)rogrammable (I)nterrupt (C)ontroller is responsible
+	  for catching interrupts and distributing them to one or more CPU
+	  cores. In most cases there are some LAPICs (local) for each core and
+	  one I/O APIC. This conjunction is found on most modern x86 systems.
+
+config PINCTRL_ICH6
+	bool
+	help
+	  Intel ICH6 compatible chipset pinctrl driver. It needs to work
+	  together with the ICH6 compatible gpio driver.
 
 config I8254_TIMER
 	bool
@@ -773,7 +781,5 @@ config HIGH_TABLE_SIZE
 
 	  Increse it if the default size does not fit the board's needs.
 	  This is most likely due to a large ACPI DSDT table is used.
-
-source "arch/x86/lib/efi/Kconfig"
 
 endmenu
