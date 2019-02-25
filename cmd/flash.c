@@ -468,14 +468,12 @@ static int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			}
 			printf ("%sProtect Flash Bank # %ld\n",
 				p ? "" : "Un-", bank);
-			printf("hello \n");
-			
+
 			for (i=0; i<info->sector_count; ++i) {
 #if defined(CONFIG_SYS_FLASH_PROTECTION)
 				if (flash_real_protect(info, i, p))
 					rcode = 1;
 				putc ('.');
-				printf("config sys flash protection\n");
 #else
 				info->protect[i] = p;
 #endif	/* CONFIG_SYS_FLASH_PROTECTION */
