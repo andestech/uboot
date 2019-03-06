@@ -162,7 +162,7 @@ static int ftsdc010_wait(struct ftsdc010_mmc __iomem *regs, uint32_t mask)
 		st = readl(&regs->status);
 		if (!(st & mask))
 			continue;
-		writel(st & mask, &regs->clr);
+		__raw_writel(st & mask, &regs->clr);
 		ret = 0;
 		break;
 	}
