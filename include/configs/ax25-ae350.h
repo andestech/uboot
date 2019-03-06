@@ -26,7 +26,7 @@
 /*
  * max number of command args
  */
-#define CONFIG_SYS_MAXARGS	16
+#define CONFIG_SYS_MAXARGS	160
 
 /*
  * Boot Argument Buffer Size
@@ -40,7 +40,7 @@
 #define CONFIG_SYS_MALLOC_LEN   (512 << 10)
 
 /* DT blob (fdt) address */
-#define CONFIG_SYS_FDT_BASE		0x000f0000
+#define CONFIG_SYS_FDT_BASE		0x800f0000
 
 /*
  * Physical Memory Map
@@ -62,7 +62,8 @@
 #define CONFIG_SYS_NS16550_CLK		19660800
 
 /* Init Stack Pointer */
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x1000000 - \
+
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x10000000 - \
 					GENERATED_GBL_DATA_SIZE)
 
 /*

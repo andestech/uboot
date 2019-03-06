@@ -11,10 +11,12 @@
 #include <linux/io.h>
 #include <faraday/ftsmc020.h>
 #include <fdtdec.h>
+#include <asm/encoding.h>
+#include <asm/csr.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
 extern phys_addr_t prior_stage_fdt_address;
+extern void init_first_hart(int hartid);
 /*
  * Miscellaneous platform dependent initializations
  */
@@ -22,6 +24,7 @@ extern phys_addr_t prior_stage_fdt_address;
 int board_init(void)
 {
 	gd->bd->bi_boot_params = PHYS_SDRAM_0 + 0x400;
+	init_first_hart(0);
 
 	return 0;
 }

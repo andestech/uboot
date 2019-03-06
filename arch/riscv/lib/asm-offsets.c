@@ -14,6 +14,8 @@
 int main(void)
 {
 	DEFINE(GD_BOOT_HART, offsetof(gd_t, arch.boot_hart));
+	DEFINE(GD_CURRENT_HART, offsetof(gd_t, arch.current_hart));
+	DEFINE(GD_BOOT_DTB, offsetof(gd_t, arch.boot_dtb));
 
 	return 0;
 }

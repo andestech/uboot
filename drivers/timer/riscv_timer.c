@@ -17,6 +17,11 @@
 #include <timer.h>
 #include <asm/io.h>
 
+int riscv_get_time(u64 *time)
+{
+	return 0;
+}
+
 /**
  * riscv_get_time() - get the timer counter
  *
@@ -26,7 +31,6 @@
  *		architecture spec.
  * @return:	0 on success, -ve on error.
  */
-extern int riscv_get_time(u64 *time);
 
 static int riscv_timer_get_count(struct udevice *dev, u64 *count)
 {

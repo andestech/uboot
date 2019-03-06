@@ -1,5 +1,9 @@
 config RISCV_NDS
 	bool
+	imply CPU
+	imply CPU_RISCV
+	imply RISCV_TIMER
+	imply NDS_PLIC if RISCV_MMODE
 	help
 	  Run U-Boot on AndeStar V5 platforms and use some specific features
 	  which are provided by Andes Technology AndeStar V5 families.

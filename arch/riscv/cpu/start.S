@@ -38,7 +38,42 @@ _start:
 	/* save hart id and dtb pointer */
 	mv	s0, a0
 	mv	s1, a1
+	li	t0, -16
+	li	t1, CONFIG_SYS_INIT_SP_ADDR
+	and	sp, t1, t0		/* force 16 byte alignment */
+	csrr	a3, mhartid
+	slli	a2, a3, RISCV_PGSHIFT
+	add	sp, sp, a2
 
+	mv	a0, sp
+	jal	board_init_f_alloc_reserve
+	mv	sp, a0
+	jal	board_init_f_init_reserve
+	csrr	a3, mhartid
+	/* save the current hart id to global_data */
+	SREG	a3, GD_CURRENT_HART(gp)
+
+	/* let hart0 go */
+	beqz a3, init_first_hart
+1:
+	mv	a0, a3
+	# set MSIE bit to receive IPI
+	li a2, MIP_MSIP
+	csrw mie, a2
+
+.LmultiHart:
+	wfi
+	# only start if mip is set
+	csrr a2, mip
+	andi a2, a2, MIP_MSIP
+	beqz a2, .LmultiHart
+	fence
+	li a2, MAX_HARTS
+	bltu a3, a2, init_other_hart
+2:
+	j	2b
+
+init_first_hart:
 	la	t0, trap_entry
 	csrw	MODE_PREFIX(tvec), t0
 
@@ -53,27 +88,17 @@ _start:
  * Set stackpointer in internal/ex RAM to call board_init_f
  */
 call_board_init_f:
-	li	t0, -16
-	li	t1, CONFIG_SYS_INIT_SP_ADDR
-	and	sp, t1, t0		/* force 16 byte alignment */
 
 #ifdef CONFIG_DEBUG_UART
 	jal	debug_uart_init
 #endif
 
 call_board_init_f_0:
-	mv	a0, sp
-	jal	board_init_f_alloc_reserve
-	mv	sp, a0
-
 	la	t0, prior_stage_fdt_address
 	SREG	s1, 0(t0)
 
-	jal	board_init_f_init_reserve
-
 	/* save the boot hart id to global_data */
 	SREG	s0, GD_BOOT_HART(gp)
-
 	mv	a0, zero		/* a0 <-- boot_flags = 0 */
 	la	t5, board_init_f
 	jr	t5			/* jump to board_init_f() */

@@ -61,6 +61,7 @@ typedef struct global_data {
 	unsigned long start_addr_sp;	/* start_addr_stackpointer */
 	unsigned long reloc_off;
 	struct global_data *new_gd;	/* relocated global data */
+	struct global_data *old_gd;	/* relocated global data */
 
 #ifdef CONFIG_DM
 	struct udevice	*dm_root;	/* Root instance for Driver Model */
@@ -133,6 +134,7 @@ typedef struct global_data {
 	struct spl_handoff *spl_handoff;
 # endif
 #endif
+	plic_sw_t plic_sw;
 } gd_t;
 #endif
 

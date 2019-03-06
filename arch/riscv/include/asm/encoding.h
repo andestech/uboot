@@ -13,6 +13,18 @@
 #define MODE_PREFIX(__suffix)	m##__suffix
 #endif
 
+#define MAX_HARTS 4 // arbitrary
+
+
+#define read_csr(reg) ({ unsigned long __tmp; \
+  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
+  __tmp; })
+
+#define write_csr(reg, val) ({ \
+  asm volatile ("csrw " #reg ", %0" :: "rK"(val)); })
+
+
+
 #define MSTATUS_UIE	0x00000001
 #define MSTATUS_SIE	0x00000002
 #define MSTATUS_HIE	0x00000004
@@ -50,7 +62,7 @@
 
 #define MIP_SSIP	BIT(IRQ_S_SOFT)
 #define MIP_HSIP	BIT(IRQ_H_SOFT)
-#define MIP_MSIP	BIT(IRQ_M_SOFT)
+#define MIP_MSIP            (1 << IRQ_M_SOFT)
 #define MIP_STIP	BIT(IRQ_S_TIMER)
 #define MIP_HTIP	BIT(IRQ_H_TIMER)
 #define MIP_MTIP	BIT(IRQ_M_TIMER)
@@ -387,6 +399,14 @@
 #define CSR_MARCHID		0xf12
 #define CSR_MIMPID		0xf13
 #define CSR_MHARTID		0xf14
+
+#define MACHINE_STACK_TOP() ({ \
+  register uintptr_t sp asm ("sp"); \
+  (void*)((sp + RISCV_PGSIZE) & -RISCV_PGSIZE); })
+
+#define MACHINE_STACK() ({ \
+  register uintptr_t sp asm ("sp"); \
+  (void*) sp; })
 
 #endif /* __riscv */
 

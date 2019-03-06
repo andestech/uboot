@@ -17,6 +17,9 @@
 #include <dm/root.h>
 #include <u-boot/zlib.h>
 
+extern void put_arg(ulong arg0, ulong arg1, ulong arg2);
+extern void wake_harts(int c);
+
 DECLARE_GLOBAL_DATA_PTR;
 
 __weak void board_quiesce_devices(void)
@@ -83,6 +86,7 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	int fake = (flag & BOOTM_STATE_OS_FAKE_GO);
 
 	kernel = (void (*)(ulong, void *))images->ep;
+	put_arg(images->ep, (ulong)images->ft_addr, 0);
 
 	bootstage_mark(BOOTSTAGE_ID_RUN_OS);
 
@@ -90,6 +94,7 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	      (ulong)kernel);
 
 	announce_and_cleanup(fake);
+	wake_harts(gd->arch.hart_num);
 
 	if (!fake) {
 		if (IMAGE_ENABLE_OF_LIBFDT && images->ft_len)
