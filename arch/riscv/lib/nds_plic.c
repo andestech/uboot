@@ -36,6 +36,7 @@ DECLARE_GLOBAL_DATA_PTR;
 		}							\
 	} while (0)
 
+#if CONFIG_SMP
 int init_plic(int c)
 {
 	int i;
@@ -93,3 +94,4 @@ U_BOOT_DRIVER(nds_plic) = {
 	.of_match	= nds_plic_ids,
 	.flags		= DM_FLAG_PRE_RELOC,
 };
+#endif

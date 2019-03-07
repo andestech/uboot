@@ -66,6 +66,7 @@ static int plic_probe(struct udevice *dev)
 
 int plic_bind(struct udevice *dev, const char *drv_name)
 {
+#ifdef CONFIG_SMP
 	const void *fdt = gd->fdt_blob;
 	int offset = dev_of_offset(dev);
 	bool pre_reloc_only = !(gd->flags & GD_FLG_RELOC);
@@ -95,6 +96,7 @@ int plic_bind(struct udevice *dev, const char *drv_name)
 			plat->regs = (void __iomem *)devfdt_get_addr(child);
 			gd->arch.plic = plat->regs;
 			dev_read_u32(child, "riscv,ndev", (u32 *)&ndev);
+
 			init_plic(ndev);
 			gd->arch.hart_num = ndev;
 		}
@@ -107,15 +109,13 @@ int plic_bind(struct udevice *dev, const char *drv_name)
 		if (ret)
 			return ret;
 	}
+#endif
 
 	return 0;
 }
 
-
 static int ae350_soc_bind(struct udevice *dev)
 {
-	printf("ae350_soc_bind\n");
-
 	return plic_bind(dev, "plic1");
 }
 

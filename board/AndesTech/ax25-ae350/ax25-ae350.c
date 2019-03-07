@@ -24,8 +24,9 @@ extern void init_first_hart(int hartid);
 int board_init(void)
 {
 	gd->bd->bi_boot_params = PHYS_SDRAM_0 + 0x400;
+#ifdef CONFIG_SMP
 	init_first_hart(0);
-
+#endif
 	return 0;
 }
 

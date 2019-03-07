@@ -17,8 +17,10 @@
 #include <dm/root.h>
 #include <u-boot/zlib.h>
 
+#ifdef CONFIG_SMP
 extern void put_arg(ulong arg0, ulong arg1, ulong arg2);
 extern void wake_harts(int c);
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -86,15 +88,16 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	int fake = (flag & BOOTM_STATE_OS_FAKE_GO);
 
 	kernel = (void (*)(ulong, void *))images->ep;
-	put_arg(images->ep, (ulong)images->ft_addr, 0);
-
 	bootstage_mark(BOOTSTAGE_ID_RUN_OS);
 
 	debug("## Transferring control to kernel (at address %08lx) ...\n",
 	      (ulong)kernel);
 
 	announce_and_cleanup(fake);
+#ifdef CONFIG_SMP
+	put_arg(images->ep, (ulong)images->ft_addr, 0);
 	wake_harts(gd->arch.hart_num);
+#endif
 
 	if (!fake) {
 		if (IMAGE_ENABLE_OF_LIBFDT && images->ft_len)

@@ -10,6 +10,7 @@
 #ifndef	__ASM_GBL_DATA_H
 #define __ASM_GBL_DATA_H
 
+#ifdef CONFIG_SMP
 struct ipi_data {
 	ulong arg0;
 	ulong arg1;
@@ -24,7 +25,7 @@ typedef struct {
 	volatile uint32_t* claim[2];
 	int hart_num;
 } plic_sw_t;
-
+#endif
 /* Architecture-specific global data */
 struct arch_global_data {
 	long boot_hart;		/* boot hart id */
@@ -38,7 +39,9 @@ struct arch_global_data {
 #ifdef CONFIG_NDS_PLIC
 	void __iomem *plic;	/* plic base address */
 #endif
+#ifdef CONFIG_SMP
 	struct ipi_data ipi;
+#endif
 };
 
 #include <asm-generic/global_data.h>

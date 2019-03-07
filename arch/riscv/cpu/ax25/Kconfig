@@ -15,4 +15,9 @@ config RISCV_NDS_CACHE
 	help
 	  Provide Andes Technology AndeStar V5 families specific cache support.
 
+config SMP
+	bool "SMP support"
+	help
+	  Provide SMP support.
+
 endif

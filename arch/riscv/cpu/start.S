@@ -55,6 +55,7 @@ _start:
 
 	/* let hart0 go */
 	beqz a3, init_first_hart
+#ifdef CONFIG_SMP
 1:
 	mv	a0, a3
 	# set MSIE bit to receive IPI
@@ -72,7 +73,7 @@ _start:
 	bltu a3, a2, init_other_hart
 2:
 	j	2b
-
+#endif
 init_first_hart:
 	la	t0, trap_entry
 	csrw	MODE_PREFIX(tvec), t0
