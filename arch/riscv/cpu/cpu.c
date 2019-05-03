@@ -11,11 +11,13 @@
 #include <asm/encoding.h>
 #include <dm/uclass-internal.h>
 
+#ifdef CONFIG_OF_PRIOR_STAGE
 /*
  * prior_stage_fdt_address must be stored in the data section since it is used
  * before the bss section is available.
  */
 phys_addr_t prior_stage_fdt_address __attribute__((section(".data")));
+#endif
 
 static inline bool supports_extension(char ext)
 {

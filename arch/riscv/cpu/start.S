@@ -95,9 +95,10 @@ call_board_init_f:
 #endif
 
 call_board_init_f_0:
+#ifdef CONFIG_OF_PRIOR_STAGE
 	la	t0, prior_stage_fdt_address
 	SREG	s1, 0(t0)
-
+#endif
 	/* save the boot hart id to global_data */
 	SREG	s0, GD_BOOT_HART(gp)
 	mv	a0, zero		/* a0 <-- boot_flags = 0 */
