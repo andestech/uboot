@@ -67,6 +67,7 @@ series
 
 # gdb files
 .gdb_history
+ubot.gdb
 
 # cscope files
 cscope.*

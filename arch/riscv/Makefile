@@ -5,14 +5,18 @@
 
 ifeq ($(CONFIG_ARCH_RV64I),y)
 	ARCH_BASE = rv64im
-	ABI = lp64
+	ABI := lp64
 endif
 ifeq ($(CONFIG_ARCH_RV32I),y)
 	ARCH_BASE = rv32im
-	ABI = ilp32
+	ABI := ilp32
 endif
 ifeq ($(CONFIG_RISCV_ISA_A),y)
 	ARCH_A = a
+endif
+ifeq ($(CONFIG_RISCV_ISA_F),y)
+	ARCH_F = fd
+	ABI := $(ABI)d
 endif
 ifeq ($(CONFIG_RISCV_ISA_C),y)
 	ARCH_C = c
@@ -24,8 +28,8 @@ ifeq ($(CONFIG_CMODEL_MEDANY),y)
 	CMODEL = medany
 endif
 
-ARCH_FLAGS = -march=$(ARCH_BASE)$(ARCH_A)$(ARCH_C) -mabi=$(ABI) \
-	     -mcmodel=$(CMODEL)
+ARCH_FLAGS = -march=$(ARCH_BASE)$(ARCH_A)$(ARCH_F)$(ARCH_C) -mabi=$(ABI) \
+			         -mcmodel=$(CMODEL)
 
 PLATFORM_CPPFLAGS	+= $(ARCH_FLAGS)
 CFLAGS_EFI		+= $(ARCH_FLAGS)
@@ -35,3 +39,7 @@ head-y := arch/riscv/cpu/start.o
 libs-y += arch/riscv/cpu/
 libs-y += arch/riscv/cpu/$(CPU)/
 libs-y += arch/riscv/lib/
+
+debug:
+	@echo "ABI="$(ABI) "ARCH_F="$(ARCH_F)
+	@echo "ARCH_FLAGS=" $(ARCH_FLAGS)
