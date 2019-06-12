@@ -5,6 +5,32 @@
  */
 
 #include <common.h>
+#include <asm/csr.h>
+
+#ifdef CONFIG_RISCV_NDS_CACHE
+/* mcctlcommand */
+#define CCTL_REG_MCCTLCOMMAND_NUM      0x7cc
+
+/* D-cache operation */
+#define CCTL_L1D_WBINVAL_ALL	6
+#endif
+
+void flush_dcache_all(void)
+{
+#ifdef CONFIG_RISCV_NDS_CACHE
+	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
+#endif
+}
+
+void flush_dcache_range(unsigned long start, unsigned long end)
+{
+	flush_dcache_all();
+}
+
+void invalidate_dcache_range(unsigned long start, unsigned long end)
+{
+	flush_dcache_all();
+}
 
 void icache_enable(void)
 {
@@ -50,8 +76,8 @@ void dcache_disable(void)
 {
 #ifndef CONFIG_SYS_DCACHE_OFF
 #ifdef CONFIG_RISCV_NDS_CACHE
+	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
 	asm volatile (
-		"fence\n\t"
 		"csrr t1, mcache_ctl\n\t"
 		"andi t0, t1, ~0x2\n\t"
 		"csrw mcache_ctl, t0\n\t"

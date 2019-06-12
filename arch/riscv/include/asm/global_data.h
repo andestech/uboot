@@ -39,6 +39,9 @@ struct arch_global_data {
 #ifdef CONFIG_NDS_PLIC
 	void __iomem *plic;	/* plic base address */
 #endif
+#ifdef CONFIG_V5L2_CACHE
+	void __iomem *v5l2;	/* v5l2 base address */
+#endif
 #ifdef CONFIG_SMP
 	struct ipi_data ipi;
 #endif

@@ -7,6 +7,7 @@
 /* CPU specific code */
 #include <common.h>
 #include <asm/cache.h>
+#include <asm/v5l2cache.h>
 #include <dm.h>
 #include <dm/util.h>
 #include <dm/lists.h>
@@ -35,6 +36,9 @@ int cleanup_before_linux(void)
 	cache_flush();
 	icache_disable();
 	dcache_disable();
+#ifdef CONFIG_RISCV_NDS_CACHE
+	v5l2_disable();
+#endif
 
 	return 0;
 }
