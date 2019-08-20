@@ -12,7 +12,7 @@
 #include <dm/util.h>
 #include <dm/lists.h>
 
-extern long *init_plic(int c);
+extern long *init_plic(void);
 
 struct ae350_soc_simple {
 	void __iomem *regs;
@@ -100,9 +100,7 @@ int plic_bind(struct udevice *dev, const char *drv_name)
 			plat->regs = (void __iomem *)devfdt_get_addr(child);
 			gd->arch.plic = plat->regs;
 			dev_read_u32(child, "riscv,ndev", (u32 *)&ndev);
-
-			init_plic(ndev);
-			gd->arch.hart_num = ndev;
+			init_plic();
 		}
 		name = fdt_get_name(fdt, offset, NULL);
 		if (!name)

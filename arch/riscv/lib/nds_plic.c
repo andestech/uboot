@@ -9,6 +9,9 @@
 
 #include <common.h>
 #include <dm.h>
+#include <dm/device-internal.h>
+#include <dm/lists.h>
+#include <dm/uclass-internal.h>
 #include <regmap.h>
 #include <syscon.h>
 #include <asm/io.h>
@@ -21,6 +24,8 @@
 #define ENABLE_REG(base, hart)	((ulong)(base) + 0x2000 + (hart) * 0x80)
 /* claim register */
 #define CLAIM_REG(base, hart)	((ulong)(base) + 0x200004 + (hart) * 0x1000)
+
+#define ENABLE_HART_IPI         (0x80808080)
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -37,25 +42,65 @@ DECLARE_GLOBAL_DATA_PTR;
 	} while (0)
 
 #if CONFIG_SMP
-int init_plic(int c)
+static int enable_ipi(int hart)
 {
-	int i;
-	int en = 0x80808080;
+	int en;
 	void *addr;
 	gd_t *pgd;
 
-	PLIC_BASE_GET();
-	for(i=0;i<c;i++)
-	{
-		en = en >> i;
-		addr = (void *)gd->old_gd + ((1<<RISCV_PGSHIFT)*i);
-		pgd = (gd_t *)addr;
-		writel(en, (void __iomem *)ENABLE_REG(gd->arch.plic, i));
-		pgd->arch.plic = gd->arch.plic;
-		pgd->plic_sw.claim[i] = (void __iomem *)CLAIM_REG(gd->arch.plic, i);
-	}
+	en = ENABLE_HART_IPI >> hart;
+	addr = (void *)gd->old_gd + ((1<<RISCV_PGSHIFT)*hart);
+	pgd = (gd_t *)addr;
+	writel(en, (void __iomem *)ENABLE_REG(gd->arch.plic, hart));
+	pgd->arch.plic = gd->arch.plic;
+	pgd->plic_sw.claim[hart] = (void __iomem *)CLAIM_REG(gd->arch.plic, hart);
 
 	return 0;
+}
+
+int init_plic(void)
+{
+		struct udevice *dev;
+		ofnode node;
+		int ret;
+		int reg;
+		int num = 0;
+
+		ret = uclass_find_first_device(UCLASS_CPU, &dev);
+
+		if (ret)
+			return ret;
+
+		if (ret == 0 && dev) {
+			ofnode_for_each_subnode(node, dev_ofnode(dev->parent)) {
+				const char *device_type;
+
+				device_type = ofnode_read_string(node, "device_type");
+
+				if (!device_type)
+					continue;
+
+				if (strcmp(device_type, "cpu"))
+					continue;
+
+				/* skip if hart is marked as not available in the device tree */
+				if (!ofnode_is_available(node))
+					continue;
+
+				/* read hart ID of CPU */
+				ret = ofnode_read_u32(node, "reg", &reg);
+
+				if (ret == 0) {
+					num++;
+					enable_ipi(reg);
+				}
+			}
+			gd->arch.hart_num = num;
+
+			return 0;
+		}
+
+		return -ENODEV;
 }
 
 void send_ipi(int c)
