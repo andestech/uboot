@@ -63,7 +63,7 @@ int init_plic(void)
 		struct udevice *dev;
 		ofnode node;
 		int ret;
-		int reg;
+		u32 reg;
 		int num = 0;
 
 		ret = uclass_find_first_device(UCLASS_CPU, &dev);
