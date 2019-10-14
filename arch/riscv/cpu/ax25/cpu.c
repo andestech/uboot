@@ -36,7 +36,7 @@ int cleanup_before_linux(void)
 	cache_flush();
 	icache_disable();
 	dcache_disable();
-#ifdef CONFIG_RISCV_NDS_CACHE
+#ifdef CONFIG_V5L2_CACHE
 	v5l2_disable();
 #endif
 
