@@ -70,11 +70,13 @@ int arch_cpu_init_dm(void)
 	if (ret)
 		return ret;
 
+#ifdef CONFIG_ENABLE_FPU
 	/* Enable FPU */
 	if (supports_extension('d') || supports_extension('f')) {
 		csr_set(MODE_PREFIX(status), MSTATUS_FS);
 		csr_write(fcsr, 0);
 	}
+#endif
 
 	if (CONFIG_IS_ENABLED(RISCV_MMODE)) {
 		/*

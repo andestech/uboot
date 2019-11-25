@@ -15,6 +15,11 @@ config RISCV_NDS_CACHE
 	help
 	  Provide Andes Technology AndeStar V5 families specific cache support.
 
+config ENABLE_FPU
+	bool "Enable FPU"
+	help
+	  Enable FPU.
+
 config SMP
 	bool "SMP support"
 	help
