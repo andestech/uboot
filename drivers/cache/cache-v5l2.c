@@ -13,9 +13,32 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static bool v5l2_exist(struct l2cache *regs)
+{
+	u32 data;
+	bool status1 = 0;
+
+	data = readl(&regs->hpm0);
+	status1 = (data & BIT(0));
+
+	if(status1)
+		clrbits_le32(&regs->hpm0, BIT(0));
+	else
+		setbits_le32(&regs->hpm0, BIT(0));
+
+	data = readl(&regs->hpm0);
+	status1 = status1 ^ (data & BIT(0));
+
+	return status1;
+
+}
+
 void v5l2_enable(void)
 {
 	struct l2cache *regs = gd->arch.v5l2;
+
+	if(!v5l2_exist(regs))
+		return;
 
 	if (regs)
 		setbits_le32(&regs->control, L2_ENABLE);
@@ -26,6 +49,9 @@ void v5l2_disable(void)
 	volatile struct l2cache *regs = gd->arch.v5l2;
 	u8 hart = gd->arch.boot_hart;
 	void __iomem *cctlcmd = (void __iomem *)CCTL_CMD_REG(gd->arch.v5l2, hart);
+
+	if(!v5l2_exist(gd->arch.v5l2))
+		return;
 
 	if ((regs) && (readl(&regs->control) & L2_ENABLE)) {
 		writel(L2_WBINVAL_ALL, cctlcmd);
@@ -48,8 +74,11 @@ static void v5l2_of_parse_and_init(struct udevice *dev)
 	u32 dram_ctl[2];
 
 	regs = (struct l2cache *)dev_read_addr(dev);
-
 	gd->arch.v5l2 = regs;
+
+	if(!v5l2_exist(regs))
+		return;
+
 	ctl_val = readl(&regs->control);
 
 	if (!(ctl_val & L2_ENABLE))
