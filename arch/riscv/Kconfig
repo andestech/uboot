@@ -273,6 +273,13 @@ config RISCV_PRIV_1_9
 	  exception. In addition to counter CSR changes, the way virtual
 	  memory is configured was also changed.
 
+config SKIP_RELOC
+	bool "Skip relocation"
+	depends on !XIP
+	help
+	  Enable this, it help to skip the generic relocation flow
+	  which it will copy u-boot on topn of dram and running there.
+
 config STACK_SIZE_SHIFT
 	int
 	default 14

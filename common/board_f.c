@@ -708,8 +708,6 @@ static int fix_fdt(void)
 
 static int jump_to_copy(void)
 {
-	if (gd->flags & GD_FLG_SKIP_RELOC)
-		return 0;
 	/*
 	 * x86 is special, but in a nice way. It uses a trampoline which
 	 * enables the dcache if possible.
@@ -728,7 +726,11 @@ static int jump_to_copy(void)
 	arch_setup_gd(gd->new_gd);
 	board_init_f_r_trampoline(gd->start_addr_sp);
 #else
+#if CONFIG_SKIP_RELOC
+	relocate_code(gd->start_addr_sp, gd, (ulong)_start);
+#else
 	relocate_code(gd->start_addr_sp, gd->new_gd, gd->relocaddr);
+#endif
 #endif
 
 	return 0;

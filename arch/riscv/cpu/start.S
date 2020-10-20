@@ -190,7 +190,11 @@ wait_for_gd_init:
 	jal	debug_uart_init
 #endif
 
+#if CONFIG_SKIP_RELOC
+	li	a0, 0x800
+#else
 	mv	a0, zero		/* a0 <-- boot_flags = 0 */
+#endif
 	la	t5, board_init_f
 	jalr	t5			/* jump to board_init_f() */
 
