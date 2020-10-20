@@ -53,6 +53,9 @@
 #include <asm/sections.h>
 #include <dm/root.h>
 #include <linux/errno.h>
+#ifdef CONFIG_EFI_LOADER
+#include <efi_loader.h>
+#endif
 
 /*
  * Pointer to initial global data area
@@ -369,6 +372,17 @@ static int reserve_pram(void)
 	return 0;
 }
 #endif /* CONFIG_PRAM */
+
+#ifdef CONFIG_EFI_LOADER
+static int reserve_efi_loader(void)
+{
+	ulong size = __efi_runtime_rel_stop - __efi_runtime_rel_start;
+
+	gd->relocaddr -= size;
+
+	return 0;
+}
+#endif
 
 /* Round memory pointer down to next 4 kB limit */
 static int reserve_round_4k(void)
@@ -912,6 +926,9 @@ static const init_fnc_t init_sequence_f[] = {
 #endif
 #ifdef CONFIG_PRAM
 	reserve_pram,
+#endif
+#ifdef CONFIG_EFI_LOADER
+	reserve_efi_loader,
 #endif
 	reserve_round_4k,
 	arch_reserve_mmu,
