@@ -14,6 +14,7 @@ ifeq ($(CONFIG_$(SPL_)RISCV_MMODE),y)
 obj-$(CONFIG_SIFIVE_CLINT) += sifive_clint.o
 obj-$(CONFIG_ANDES_PLIC) += andes_plic.o
 obj-$(CONFIG_ANDES_PLMT) += andes_plmt.o
+obj-$(CONFIG_ANDES_PMA) += andes_pma.o
 else
 obj-$(CONFIG_SBI) += sbi.o
 obj-$(CONFIG_SBI_IPI) += sbi_ipi.o

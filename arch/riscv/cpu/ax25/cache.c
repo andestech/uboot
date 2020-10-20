@@ -5,6 +5,8 @@
  */
 
 #include <common.h>
+#include <asm/encoding.h>
+#include <malloc.h>
 #include <cpu_func.h>
 #include <dm.h>
 #include <asm/cache.h>
@@ -20,6 +22,11 @@
 /* D-cache operation */
 #define CCTL_L1D_WBINVAL_ALL	6
 #endif
+#endif
+
+#ifdef CONFIG_ANDES_PMA
+#define DPMA			(_AC(0x1, UL) << 30)
+int pma_set(unsigned long addr, unsigned int size);
 #endif
 
 #ifdef CONFIG_V5L2_CACHE
@@ -170,3 +177,52 @@ int dcache_status(void)
 
 	return ret;
 }
+
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+/*
+ * Reserve one MMU section worth of address space below the malloc() area that
+ * will be mapped uncached.
+ */
+static unsigned long noncached_start = 0;
+static unsigned long noncached_end = 0;
+static unsigned long noncached_next = 0;
+
+int noncached_init(void)
+{
+	phys_addr_t start, end;
+	size_t size;
+
+#ifdef CONFIG_ANDES_PMA
+	if (!(csr_read(CSR_MMSCCFG) & DPMA))
+#endif
+		return -ENXIO;
+
+	end = ALIGN(mem_malloc_start, MMU_SECTION_SIZE) - MMU_SECTION_SIZE;
+	size = ALIGN(CONFIG_SYS_NONCACHED_MEMORY, MMU_SECTION_SIZE);
+	start = end - size;
+
+	debug("mapping memory %pa-%pa non-cached\n", &start, &end);
+
+	noncached_start = start;
+	noncached_end = end;
+	noncached_next = start;
+
+	return 0;
+}
+
+phys_addr_t noncached_alloc(size_t size, size_t align)
+{
+	phys_addr_t next = ALIGN(noncached_next, align);
+
+	if (next >= noncached_end || (noncached_end - next) < size)
+		return 0;
+
+	debug("allocated %zu bytes of uncached memory @%pa\n", size, &next);
+#ifdef CONFIG_ANDES_PMA	
+	pma_set(next, size);
+#endif
+	noncached_next = next + size;
+
+	return next;
+}
+#endif /* CONFIG_SYS_NONCACHED_MEMORY */

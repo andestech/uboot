@@ -97,6 +97,20 @@
 #define EXT_IO_BASE		0x40000000
 #define DRAM_BASE		0x80000000
 
+#define PMA_ETYPE			0x3
+#define PMA_ETYPE_TOR			0x01
+#define PMA_ETYPE_NA4			0x02
+#define PMA_ETYPE_NAPOT			0x03
+#define PMA_MTYPE_OFF			2
+#define MTYPE_DEV_NONBUF		0
+#define MTYPE_DEV_BUF			1
+#define MTYPE_MEM_NONCACHE_NONBUF	2
+#define MTYPE_MEM_NONCACHE_BUF		3
+#define MTYPE_MEM_WT_RW			7
+#define PMA_SHIFT			2
+#define PMA_COUNT			16
+#define PMA_TOR_COUNT			8
+
 // page table entry (PTE) fields
 #define PTE_V		0x001 // Valid
 #define PTE_TYPE	0x01E // Type

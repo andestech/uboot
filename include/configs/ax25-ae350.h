@@ -7,6 +7,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <linux/sizes.h>
+
 #ifdef CONFIG_SPL
 #define CONFIG_SPL_MAX_SIZE		0x00100000
 #define CONFIG_SPL_BSS_START_ADDR	0x04000000
@@ -47,6 +49,7 @@
  * 512kB is suggested, (CONFIG_ENV_SIZE + 128 * 1024) was not enough
  */
 #define CONFIG_SYS_MALLOC_LEN   (512 << 10)
+#define CONFIG_SYS_NONCACHED_MEMORY	SZ_1M
 
 /* DT blob (fdt) address */
 #define CONFIG_SYS_FDT_BASE		0x800f0000

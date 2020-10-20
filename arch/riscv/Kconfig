@@ -177,6 +177,12 @@ config ANDES_PLMT
 	  The Andes PLMT block holds memory-mapped mtime register
 	  associated with timer tick.
 
+config ANDES_PMA
+	bool
+	depends on RISCV_MMODE
+	help
+	  The Andes PMA configuration.
+
 config SYS_MALLOC_F_LEN
 	default 0x1000
 
