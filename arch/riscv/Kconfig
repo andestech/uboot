@@ -280,6 +280,18 @@ config SKIP_RELOC
 	  Enable this, it help to skip the generic relocation flow
 	  which it will copy u-boot on topn of dram and running there.
 
+config ELF_TOOLCHAIN
+	bool "Elf toolchain"
+	depends on SKIP_RELOC
+	help
+	  Enable this, it help to build with elf toolchain.
+
+config EXECIT
+	bool "Support execit"
+	depends on ELF_TOOLCHAIN
+	help
+	  This config help to support execit
+
 config STACK_SIZE_SHIFT
 	int
 	default 14

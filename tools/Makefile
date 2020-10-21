@@ -204,7 +204,10 @@ hostprogs-$(CONFIG_ARCH_KIRKWOOD) += kwboot
 hostprogs-$(CONFIG_ARCH_MVEBU) += kwboot
 hostprogs-y += proftool
 hostprogs-$(CONFIG_STATIC_RELA) += relocate-rela
+
+ifndef CONFIG_ELF_TOOLCHAIN
 hostprogs-$(CONFIG_RISCV) += prelink-riscv
+endif
 
 hostprogs-y += fdtgrep
 fdtgrep-objs += $(LIBFDT_OBJS) common/fdt_region.o fdtgrep.o

@@ -1753,7 +1753,9 @@ ifeq ($(CONFIG_KALLSYMS),y)
 endif
 
 ifeq ($(CONFIG_RISCV),y)
+ifndef CONFIG_ELF_TOOLCHAIN
 	@tools/prelink-riscv $@ 0
+endif
 endif
 
 quiet_cmd_sym ?= SYM     $@

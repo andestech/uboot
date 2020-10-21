@@ -25,10 +25,18 @@ endif
 
 CONFIG_STANDALONE_LOAD_ADDR ?= 0x00000000
 
-PLATFORM_CPPFLAGS	+= -ffixed-gp -fpic
+PLATFORM_CPPFLAGS	+= -ffixed-gp
+ifndef CONFIG_ELF_TOOLCHAIN
+PLATFORM_CPPFLAGS	+= -fpic
+endif
 PLATFORM_RELFLAGS	+= -fno-common -gdwarf-2 -ffunction-sections \
 			   -fdata-sections
-LDFLAGS_u-boot		+= --gc-sections -static -pie
-
+LDFLAGS_u-boot		+= --gc-sections -static
+ifndef CONFIG_ELF_TOOLCHAIN
+LDFLAGS_u-boot		+= -pie
+endif
+ifdef CONFIG_EXECIT
+LDFLAGS_u-boot		+= --mexecit
+endif
 EFI_CRT0		:= crt0_riscv_efi.o
 EFI_RELOC		:= reloc_riscv_efi.o

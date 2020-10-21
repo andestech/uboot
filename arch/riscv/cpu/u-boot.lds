@@ -76,11 +76,20 @@ SECTIONS
 
 	. = ALIGN(4);
 
+	.fini :
+		{ KEEP(*(.fini )) }
+	.exec.itable :
+		{ *(.exec.itable ) }
+		PROVIDE (__etext = .);
+
+	. = ALIGN(4);
+
 	_end = .;
 
 	.bss : {
 		__bss_start = .;
 		*(.bss*)
+		*(.sbss*)
 		. = ALIGN(8);
 		__bss_end = .;
 	}

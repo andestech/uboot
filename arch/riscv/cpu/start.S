@@ -50,6 +50,9 @@ _start:
 	mv	tp, a0
 	mv	s1, a1
 
+	la a0, _ITB_BASE_;
+	csrrw x0, uitb, a0;
+
 	/*
 	 * Set the global data pointer to a known value in case we get a very
 	 * early trap. The global data pointer will be set its actual value only
