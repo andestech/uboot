@@ -27,6 +27,7 @@ enum sbi_ext_id {
 	SBI_EXT_TIME = 0x54494D45,
 	SBI_EXT_IPI = 0x735049,
 	SBI_EXT_RFENCE = 0x52464E43,
+	SBI_EXT_ANDES = 0x0900031E,
 };
 
 enum sbi_ext_base_fid {
@@ -51,6 +52,31 @@ enum sbi_ext_rfence_fid {
 	SBI_EXT_RFENCE_REMOTE_FENCE_I = 0,
 	SBI_EXT_RFENCE_REMOTE_SFENCE_VMA,
 	SBI_EXT_RFENCE_REMOTE_SFENCE_VMA_ASID,
+};
+
+enum sbi_ext_andes_fid {
+          SBI_EXT_ANDES_GET_MCACHE_CTL_STATUS = 0,
+          SBI_EXT_ANDES_GET_MMISC_CTL_STATUS,
+          SBI_EXT_ANDES_SET_MCACHE_CTL,
+          SBI_EXT_ANDES_SET_MMISC_CTL,
+          SBI_EXT_ANDES_ICACHE_OP,
+          SBI_EXT_ANDES_DCACHE_OP,
+          SBI_EXT_ANDES_L1CACHE_I_PREFETCH,
+          SBI_EXT_ANDES_L1CACHE_D_PREFETCH,
+          SBI_EXT_ANDES_NON_BLOCKING_LOAD_STORE,
+          SBI_EXT_ANDES_WRITE_AROUND,
+          SBI_EXT_ANDES_TRIGGER,
+          SBI_EXT_ANDES_SET_PFM,
+          SBI_EXT_ANDES_READ_POWERBRAKE,
+          SBI_EXT_ANDES_WRITE_POWERBRAKE,
+          SBI_EXT_ANDES_SUSPEND_PREPARE,
+          SBI_EXT_ANDES_SUSPEND_MEM,
+          SBI_EXT_ANDES_SET_SUSPEND_MODE,
+          SBI_EXT_ANDES_RESTART,
+          SBI_EXT_ANDES_SET_RESET_VEC,
+          SBI_EXT_ANDES_SET_PMA,
+          SBI_EXT_ANDES_FREE_PMA,
+          SBI_EXT_ANDES_PROBE_PMA,
 };
 
 #ifdef CONFIG_SBI_V01
@@ -118,5 +144,13 @@ void sbi_set_timer(uint64_t stime_value);
 long sbi_get_spec_version(void);
 int sbi_get_impl_id(void);
 int sbi_probe_extension(int ext);
+long sbi_get_L1cache(void);
+void sbi_en_icache(void);
+void sbi_dis_icache(void);
+void sbi_en_dcache(void);
+void sbi_dis_dcache(void);
+void sbi_set_pma(phys_addr_t offset, unsigned long vaddr, size_t size);
+void sbi_free_pma(unsigned long vaddr);
+long sbi_probe_pma(void);
 
 #endif

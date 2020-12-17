@@ -108,6 +108,52 @@ int sbi_probe_extension(int extid)
 	return -ENOTSUPP;
 }
 
+long sbi_get_L1cache(void)
+{
+	struct sbiret ret;
+
+	ret = sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_GET_MCACHE_CTL_STATUS, 0, 0, 0, 0, 0, 0);
+
+	return ret.value;
+}
+
+void sbi_en_icache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_ICACHE_OP, 1, 0, 0, 0, 0, 0);
+}
+
+void sbi_dis_icache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_ICACHE_OP, 0, 0, 0, 0, 0, 0);
+}
+
+void sbi_en_dcache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_OP, 1, 0, 0, 0, 0, 0);
+}
+
+void sbi_dis_dcache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_OP, 0, 0, 0, 0, 0, 0);
+}
+
+long sbi_probe_pma(void)
+{
+	struct sbiret ret;
+	ret = sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_PROBE_PMA, 0, 0, 0, 0, 0, 0);
+	return ret.value;
+}
+
+void sbi_set_pma(phys_addr_t offset, unsigned long vaddr, size_t size)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_SET_PMA, offset, vaddr, size, 0, 0, 0);
+}
+
+void sbi_free_pma(unsigned long vaddr)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_FREE_PMA, vaddr, 0, 0, 0, 0, 0);
+}
+
 #ifdef CONFIG_SBI_V01
 
 /**

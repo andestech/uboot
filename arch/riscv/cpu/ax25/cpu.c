@@ -21,9 +21,11 @@ int cleanup_before_linux(void)
 	disable_interrupts();
 
 	/* turn off I/D-cache */
+#if !CONFIG_IS_ENABLED(RISCV_SMODE)
 	cache_flush();
 	icache_disable();
 	dcache_disable();
+#endif
 
 	return 0;
 }
