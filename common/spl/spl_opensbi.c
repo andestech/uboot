@@ -14,6 +14,7 @@
 #include <asm/smp.h>
 #include <opensbi.h>
 #include <linux/libfdt.h>
+#include <asm/system.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -72,7 +73,11 @@ void spl_invoke_opensbi(struct spl_image_info *spl_image)
 	opensbi_info.version = FW_DYNAMIC_INFO_VERSION;
 	opensbi_info.next_addr = uboot_entry;
 	opensbi_info.next_mode = FW_DYNAMIC_INFO_NEXT_MODE_S;
-	opensbi_info.options = SBI_SCRATCH_NO_BOOT_PRINTS;
+	opensbi_info.options = (SBI_SCRATCH_NO_BOOT_PRINTS);
+#ifndef CONFIG_RISCV_NDS_CACHE
+	if(noncached_init())
+		opensbi_info.options |= (SBI_SCRATCH_NO_CACHE_PRINTS);
+#endif
 	opensbi_info.boot_hart = gd->arch.boot_hart;
 
 	opensbi_entry = (void (*)(ulong, ulong, ulong))spl_image->entry_point;

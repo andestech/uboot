@@ -160,6 +160,9 @@ static int v5l2_probe(struct udevice *dev)
 	struct l2cache *regs = plat->regs;
 	u32 ctl_val;
 
+	if(!v5l2_exist(regs))
+		return;
+
 	ctl_val = readl(&regs->control);
 
 	if (!(ctl_val & L2_ENABLE))
@@ -193,7 +196,7 @@ static int v5l2_probe(struct udevice *dev)
 }
 
 static const struct udevice_id v5l2_cache_ids[] = {
-	{ .compatible = "v5l2cache" },
+	{ .compatible = "cache" },
 	{}
 };
 

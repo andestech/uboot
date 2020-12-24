@@ -77,6 +77,7 @@ enum sbi_ext_andes_fid {
           SBI_EXT_ANDES_SET_PMA,
           SBI_EXT_ANDES_FREE_PMA,
           SBI_EXT_ANDES_PROBE_PMA,
+          SBI_EXT_ANDES_DCACHE_WBINVAL_ALL,
 };
 
 #ifdef CONFIG_SBI_V01
@@ -149,6 +150,7 @@ void sbi_en_icache(void);
 void sbi_dis_icache(void);
 void sbi_en_dcache(void);
 void sbi_dis_dcache(void);
+void sbi_dcache_wbinval_all(void);
 void sbi_set_pma(phys_addr_t offset, unsigned long vaddr, size_t size);
 void sbi_free_pma(unsigned long vaddr);
 long sbi_probe_pma(void);

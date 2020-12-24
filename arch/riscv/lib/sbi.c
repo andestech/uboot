@@ -137,6 +137,11 @@ void sbi_dis_dcache(void)
 	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_OP, 0, 0, 0, 0, 0, 0);
 }
 
+void sbi_dcache_wbinval_all(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_WBINVAL_ALL, 0, 0, 0, 0, 0, 0);
+}
+
 long sbi_probe_pma(void)
 {
 	struct sbiret ret;

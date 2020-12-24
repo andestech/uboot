@@ -83,18 +83,32 @@ int smc_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_V5L2_CACHE
 static void v5l2_init(void)
 {
 	struct udevice *dev;
 
 	uclass_get_device(UCLASS_CACHE, 0, &dev);
 }
+#endif
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+#ifdef CONFIG_V5L2_CACHE
+	v5l2_init();
+#endif
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_BOARD_EARLY_INIT_F
 int board_early_init_f(void)
 {
 	smc_init();
+#ifdef CONFIG_V5L2_CACHE
 	v5l2_init();
+#endif
 
 	return 0;
 }

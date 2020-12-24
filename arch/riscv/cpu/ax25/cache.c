@@ -20,15 +20,13 @@
 #define MCACHE_CTL_IC_EN	(1UL << 0)
 #define MCACHE_CTL_DC_EN	(1UL << 1)
 
-#ifdef CONFIG_RISCV_NDS_CACHE
-#if CONFIG_IS_ENABLED(RISCV_MMODE)
+//#if CONFIG_IS_ENABLED(RISCV_MMODE)
 /* mcctlcommand */
 #define CCTL_REG_MCCTLCOMMAND_NUM	0x7cc
 
 /* D-cache operation */
 #define CCTL_L1D_WBINVAL_ALL	6
-#endif
-#endif
+//#endif
 
 #if !CONFIG_IS_ENABLED(RISCV_SMODE)
 #define DPMA			(_AC(0x1, UL) << 30)
@@ -61,13 +59,11 @@ void flush_dcache_all(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 #if !CONFIG_IS_ENABLED(SYS_ICACHE_OFF)
-#ifdef CONFIG_RISCV_NDS_CACHE
 	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
 #endif
-#endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
-	sbi_dis_dcache();
-	sbi_en_dcache();
+	if(dcache_status())
+		sbi_dcache_wbinval_all();
 #endif /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 }
 
@@ -85,13 +81,11 @@ void icache_enable(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 #if !CONFIG_IS_ENABLED(SYS_ICACHE_OFF)
-#ifdef CONFIG_RISCV_NDS_CACHE
 	asm volatile (
 		"csrr t1, mcache_ctl\n\t"
 		"ori t0, t1, 0x1\n\t"
 		"csrw mcache_ctl, t0\n\t"
 	);
-#endif
 #endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 	sbi_en_icache();
@@ -102,14 +96,12 @@ void icache_disable(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 #if !CONFIG_IS_ENABLED(SYS_ICACHE_OFF)
-#ifdef CONFIG_RISCV_NDS_CACHE
 	asm volatile (
 		"fence.i\n\t"
 		"csrr t1, mcache_ctl\n\t"
 		"andi t0, t1, ~0x1\n\t"
 		"csrw mcache_ctl, t0\n\t"
 	);
-#endif
 #endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 	sbi_dis_icache();
@@ -120,13 +112,11 @@ void dcache_enable(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 #if !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
-#ifdef CONFIG_RISCV_NDS_CACHE
 	asm volatile (
 		"csrr t1, mcache_ctl\n\t"
 		"ori t0, t1, 0x2\n\t"
 		"csrw mcache_ctl, t0\n\t"
 	);
-#endif
 #endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 	sbi_en_dcache();
@@ -141,14 +131,12 @@ void dcache_disable(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 #if !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
-#ifdef CONFIG_RISCV_NDS_CACHE
 	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
 	asm volatile (
 		"csrr t1, mcache_ctl\n\t"
 		"andi t0, t1, ~0x2\n\t"
 		"csrw mcache_ctl, t0\n\t"
 	);
-#endif
 #endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 	sbi_dis_dcache();
@@ -164,7 +152,6 @@ int icache_status(void)
 	int ret = 0;
 
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
-#ifdef CONFIG_RISCV_NDS_CACHE
 	asm volatile (
 		"csrr t1, mcache_ctl\n\t"
 		"andi	%0, t1, 0x01\n\t"
@@ -172,7 +159,6 @@ int icache_status(void)
 		:
 		: "memory"
 	);
-#endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 	ret = (sbi_get_L1cache()& MCACHE_CTL_IC_EN);
 #endif /* CONFIG_IS_ENABLED(RISCV_MMODE) */
@@ -218,6 +204,7 @@ int noncached_init(void)
 #if !CONFIG_IS_ENABLED(RISCV_SMODE)
 	if (!(csr_read(CSR_MMSCCFG) & DPMA))
 #else
+
 	if (!sbi_probe_pma())
 #endif
 		return -ENXIO;

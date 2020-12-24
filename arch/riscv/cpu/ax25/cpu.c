@@ -25,6 +25,12 @@ int cleanup_before_linux(void)
 	cache_flush();
 	icache_disable();
 	dcache_disable();
+#else
+	if(!icache_status())
+		icache_enable();
+
+	if(!dcache_status())
+		dcache_enable();
 #endif
 
 	return 0;
