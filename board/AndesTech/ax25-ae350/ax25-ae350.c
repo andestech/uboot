@@ -4,6 +4,8 @@
  * Rick Chen, Andes Technology Corporation <rick@andestech.com>
  */
 
+#include <asm/csr.h>
+#include <asm/sbi.h>
 #include <common.h>
 #include <flash.h>
 #include <image.h>
@@ -24,6 +26,25 @@ extern phys_addr_t prior_stage_fdt_address;
 /*
  * Miscellaneous platform dependent initializations
  */
+
+int misc_init_r(void)
+{
+	char cpu[] = "ax25";
+	long csr_marchid = 0;
+	u16 mask64 = 0x8000;
+#if CONFIG_IS_ENABLED(RISCV_SMODE)
+	csr_marchid = sbi_get_marchid();
+#elif CONFIG_IS_ENABLED(RISCV_MMODE)
+	csr_marchid = csr_read(CSR_MARCHID);
+#endif
+	snprintf(cpu, strlen(cpu)+1, "%x", (u16)csr_marchid);
+	if(csr_marchid & mask64){
+		cpu[0] = cpu[1];
+		cpu[1] = 'x';
+	}
+
+	return env_set("cpu", cpu);
+}
 
 int board_init(void)
 {

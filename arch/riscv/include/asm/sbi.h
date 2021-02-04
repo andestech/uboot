@@ -154,5 +154,5 @@ void sbi_dcache_wbinval_all(void);
 void sbi_set_pma(phys_addr_t offset, unsigned long vaddr, size_t size);
 void sbi_free_pma(unsigned long vaddr);
 long sbi_probe_pma(void);
-
+long sbi_get_marchid(void);
 #endif
