@@ -38,6 +38,14 @@ struct cache_ops {
 	 * @return 0 if OK, -ve on error
 	 */
 	int (*disable)(struct udevice *dev);
+
+	/**
+	 * wbinval() - Flush and invalidate
+	 *
+	 * @dev:	Device to check (UCLASS_CACHE)
+	 * @return 0 if OK, -ve on error
+	 */
+	int (*wbinval)(struct udevice *dev);
 };
 
 #define cache_get_ops(dev)	((struct cache_ops *)(dev)->driver->ops)
@@ -66,4 +74,12 @@ int cache_enable(struct udevice *dev);
  * @return 0 if OK, -ve on error
  */
 int cache_disable(struct udevice *dev);
+
+/**
+ * cache_wbinval() - Flush and invalidate cache
+ *
+ * @dev:	Device to check (UCLASS_CACHE)
+ * @return 0 if OK, -ve on error
+ */
+int cache_wbinval(struct udevice *dev);
 #endif

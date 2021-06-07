@@ -71,7 +71,7 @@ struct v5l2_plat {
 	u32 		dram_ctl[2];
 };
 
-static bool v5l2_exist(struct l2cache *regs)
+static bool v5l2_exist(volatile struct l2cache *regs)
 {
 	u32 data;
 	bool status1 = 0;
@@ -97,7 +97,7 @@ static int v5l2_enable(struct udevice *dev)
 	volatile struct l2cache *regs = plat->regs;
 
 	if(!v5l2_exist(regs))
-		return;
+		return -ENXIO;
 
 	if (regs)
 		setbits_le32(&regs->control, L2_ENABLE);
@@ -105,7 +105,7 @@ static int v5l2_enable(struct udevice *dev)
 	return 0;
 }
 
-static int v5l2_disable(struct udevice *dev)
+static int v5l2_wbinval(struct udevice *dev)
 {
 	struct v5l2_plat *plat = dev_get_platdata(dev);
 	volatile struct l2cache *regs = plat->regs;
@@ -113,7 +113,7 @@ static int v5l2_disable(struct udevice *dev)
 	void __iomem *cctlcmd = (void __iomem *)CCTL_CMD_REG(regs, hart);
 
 	if(!v5l2_exist(regs))
-		return;
+		return -ENXIO;
 
 	if ((regs) && (readl(&regs->control) & L2_ENABLE)) {
 		writel(L2_WBINVAL_ALL, cctlcmd);
@@ -124,8 +124,26 @@ static int v5l2_disable(struct udevice *dev)
 				hang();
 			}
 		}
-		clrbits_le32(&regs->control, L2_ENABLE);
 	}
+
+	return 0;
+}
+
+static int v5l2_disable(struct udevice *dev)
+{
+	struct v5l2_plat *plat = dev_get_platdata(dev);
+	volatile struct l2cache *regs = plat->regs;
+	int ret = -ENXIO;
+
+	if(!v5l2_exist(regs))
+		return -ENXIO;
+
+	ret = v5l2_wbinval(dev);
+	if(ret)
+		return ret;
+
+	if ((regs) && (readl(&regs->control) & L2_ENABLE))
+		clrbits_le32(&regs->control, L2_ENABLE);
 
 	return 0;
 }
@@ -161,7 +179,7 @@ static int v5l2_probe(struct udevice *dev)
 	u32 ctl_val;
 
 	if(!v5l2_exist(regs))
-		return;
+		return -ENXIO;
 
 	ctl_val = readl(&regs->control);
 
@@ -203,6 +221,7 @@ static const struct udevice_id v5l2_cache_ids[] = {
 static const struct cache_ops v5l2_cache_ops = {
 	.enable		= v5l2_enable,
 	.disable	= v5l2_disable,
+	.wbinval	= v5l2_wbinval,
 };
 
 U_BOOT_DRIVER(v5l2_cache) = {

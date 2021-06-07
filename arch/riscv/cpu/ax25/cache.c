@@ -53,18 +53,32 @@ static void _cache_disable(void)
 	if (dev)
 		cache_disable(dev);
 }
+
+static void _cache_wbinval(void)
+{
+	struct udevice *dev = NULL;
+
+	uclass_find_first_device(UCLASS_CACHE, &dev);
+
+	if (dev)
+		cache_wbinval(dev);
+}
 #endif
 
 void flush_dcache_all(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE) /* CONFIG_IS_ENABLED(RISCV_MMODE) */
-#if !CONFIG_IS_ENABLED(SYS_ICACHE_OFF)
+#if !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
 	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
 #endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 	if(dcache_status())
 		sbi_dcache_wbinval_all();
 #endif /* CONFIG_IS_ENABLED(RISCV_MMODE) */
+
+#ifdef CONFIG_V5L2_CACHE
+	_cache_wbinval();
+#endif
 }
 
 void flush_dcache_range(unsigned long start, unsigned long end)
@@ -208,7 +222,6 @@ int noncached_init(void)
 	if (!sbi_probe_pma())
 #endif
 		return -ENXIO;
-
 	end = ALIGN(mem_malloc_start, MMU_SECTION_SIZE) - MMU_SECTION_SIZE;
 	size = ALIGN(CONFIG_SYS_NONCACHED_MEMORY, MMU_SECTION_SIZE);
 	start = end - size;

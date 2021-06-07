@@ -33,6 +33,7 @@ struct ftmac100_data {
 	const char *name;
 	phys_addr_t iobase;
 	struct ftmac100_des *pdes;
+	bool coherent;
 };
 
 /*
@@ -180,7 +181,9 @@ static int __ftmac100_recv(struct ftmac100_data *priv)
 	}
 
 	rxlen = FTMAC100_RXDES0_RFL (curr_des->rxdes0);
-	invalidate_dcache_range(curr_des->rxdes2,curr_des->rxdes2+rxlen);
+	if(!priv->coherent)
+		invalidate_dcache_range(curr_des->rxdes2,curr_des->rxdes2+rxlen);
+
 	debug ("%s(): RX buffer %d, %x received\n",
 	       __func__, priv->rx_index, rxlen);
 
@@ -206,8 +209,8 @@ static int _ftmac100_send(struct ftmac100_data *priv, void *packet, int length)
 	length = (length < ETH_ZLEN) ? ETH_ZLEN : length;
 
 	/* initiate a transmit sequence */
-
-	flush_dcache_range((unsigned long)packet,(unsigned long)packet+length);
+	if(!priv->coherent)
+		flush_dcache_range((unsigned long)packet,(unsigned long)packet+length);
 	curr_des->txdes2 = (unsigned int)(unsigned long)packet;	/* TXBUF_BADR */
 
 	curr_des->txdes1 &= FTMAC100_TXDES1_EDOTR;
@@ -422,7 +425,16 @@ static int ftmac100_probe(struct udevice *dev)
 	struct ftmac100_data *priv = dev_get_priv(dev);
 
 	priv->name = dev->name;
-	priv->pdes = (struct ftmac100_des *)noncached_alloc(sizeof(struct ftmac100_des), 4096);
+	priv->coherent = false;
+
+	if (dev_read_bool(dev, "dma-coherent"))
+		priv->coherent = true;
+
+	if(!priv->coherent)
+		priv->pdes = (struct ftmac100_des *)noncached_alloc(sizeof(struct ftmac100_des), 4096);
+	else
+		priv->pdes = 0;
+
 	if(!priv->pdes)
 		priv->pdes = (struct ftmac100_des *)&priv->des;
 	memset(priv->pdes, 0, sizeof(struct ftmac100_des));
