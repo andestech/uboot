@@ -61,7 +61,7 @@ void harts_early_init(void)
 		unsigned long long bitmap_mask = 0xFF;
 		unsigned long long bitmap = marchid & bitmap_mask;
 
-		if(bitmap & 0x45){
+		if(bitmap == 0x45){
 			if (!(mcache_ctl_val & V5_MCACHE_CTL_DC_COHEN_EN))
 				mcache_ctl_val |= V5_MCACHE_CTL_DC_COHEN_EN;
 			if (!(mcache_ctl_val & V5_MCACHE_CTL_IC_EN))

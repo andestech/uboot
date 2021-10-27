@@ -133,7 +133,8 @@ void dcache_enable(void)
 	);
 #endif
 #else /* CONFIG_IS_ENABLED(RISCV_MMODE) */
-	sbi_en_dcache();
+	if (!(sbi_get_L1cache()& MCACHE_CTL_DC_EN))
+		sbi_en_dcache();
 #endif /* CONFIG_IS_ENABLED(RISCV_MMODE) */
 
 #ifdef CONFIG_V5L2_CACHE
