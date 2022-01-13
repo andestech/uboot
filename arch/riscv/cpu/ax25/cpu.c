@@ -42,6 +42,7 @@ int cleanup_before_linux(void)
 	icache_disable();
 	dcache_disable();
 #else
+	invalidate_icache_all();
 	if(!icache_status())
 		icache_enable();
 
