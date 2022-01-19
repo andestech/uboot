@@ -406,6 +406,28 @@ static const char *dtbmacaddr(u32 ifno)
 	return NULL;
 }
 
+static bool dtbcoherent(struct udevice *dev)
+{
+	int node, len;
+
+	if (dev_read_bool(dev, "dma-coherent"))
+		return true;
+
+	if (gd->fdt_blob == NULL) {
+		printf("%s: don't have a valid gd->fdt_blob!\n", __func__);
+		return NULL;
+	}
+
+	node = fdt_path_offset(gd->fdt_blob, "/");
+	if (node < 0)
+		return NULL;
+
+	if (fdt_get_property(gd->fdt_blob, node, "dma-coherent", &len))
+		return true;
+
+	return false;
+}
+
 static int ftmac100_ofdata_to_platdata(struct udevice *dev)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
@@ -413,6 +435,7 @@ static int ftmac100_ofdata_to_platdata(struct udevice *dev)
 	const char *mac;
 	pdata->iobase = dev_read_addr(dev);
 	priv->iobase = pdata->iobase;
+	priv->coherent = dtbcoherent(dev);
 	mac = dtbmacaddr(0);
 	if (mac)
 		memcpy(pdata->enetaddr , mac , 6);
@@ -425,10 +448,6 @@ static int ftmac100_probe(struct udevice *dev)
 	struct ftmac100_data *priv = dev_get_priv(dev);
 
 	priv->name = dev->name;
-	priv->coherent = false;
-
-	if (dev_read_bool(dev, "dma-coherent"))
-		priv->coherent = true;
 
 	if(!priv->coherent)
 		priv->pdes = (struct ftmac100_des *)noncached_alloc(sizeof(struct ftmac100_des), 4096);
