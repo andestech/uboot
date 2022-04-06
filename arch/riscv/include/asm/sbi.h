@@ -27,6 +27,8 @@ enum sbi_ext_id {
 	SBI_EXT_RFENCE = 0x52464E43,
 	SBI_EXT_HSM = 0x48534D,
 	SBI_EXT_SRST = 0x53525354,
+	SBI_EXT_PMU = 0x504D55,
+	SBI_EXT_ANDES = 0x0900031E,
 };
 
 enum sbi_ext_base_fid {
@@ -86,6 +88,12 @@ enum sbi_srst_reset_type {
 enum sbi_srst_reset_reason {
 	SBI_SRST_RESET_REASON_NONE = 0,
 	SBI_SRST_RESET_REASON_SYS_FAILURE,
+};
+
+enum sbi_ext_andes_fid {
+          SBI_EXT_ANDES_SET_PMA,
+          SBI_EXT_ANDES_FREE_PMA,
+          SBI_EXT_ANDES_PROBE_PMA,
 };
 
 #ifdef CONFIG_SBI_V01
@@ -155,5 +163,8 @@ int sbi_get_impl_id(void);
 int sbi_get_impl_version(long *version);
 int sbi_probe_extension(int ext);
 void sbi_srst_reset(unsigned long type, unsigned long reason);
+void sbi_set_pma(phys_addr_t offset, unsigned long vaddr, size_t size);
+void sbi_free_pma(unsigned long vaddr);
+long sbi_probe_pma(void);
 
 #endif

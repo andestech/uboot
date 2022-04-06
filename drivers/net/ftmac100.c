@@ -23,12 +23,18 @@ DECLARE_GLOBAL_DATA_PTR;
 #endif
 #define ETH_ZLEN	60
 
-struct ftmac100_data {
+struct ftmac100_des {
 	struct ftmac100_txdes txdes[1];
 	struct ftmac100_rxdes rxdes[PKTBUFSRX];
+};
+
+struct ftmac100_data {
+	struct ftmac100_des des;
 	int rx_index;
 	const char *name;
 	phys_addr_t iobase;
+	struct ftmac100_des *pdes;
+	bool coherent;
 };
 
 /*
@@ -83,8 +89,8 @@ static void _ftmac100_halt(struct ftmac100_data *priv)
 static int _ftmac100_init(struct ftmac100_data *priv, unsigned char enetaddr[6])
 {
 	struct ftmac100 *ftmac100 = (struct ftmac100 *)(uintptr_t)priv->iobase;
-	struct ftmac100_txdes *txdes = priv->txdes;
-	struct ftmac100_rxdes *rxdes = priv->rxdes;
+	struct ftmac100_txdes *txdes = priv->pdes->txdes;
+	struct ftmac100_rxdes *rxdes = priv->pdes->rxdes;
 	unsigned int maccr;
 	int i;
 	debug ("%s()\n", __func__);
@@ -147,7 +153,8 @@ static int _ftmac100_init(struct ftmac100_data *priv, unsigned char enetaddr[6])
 static int _ftmac100_free_pkt(struct ftmac100_data *priv)
 {
 	struct ftmac100_rxdes *curr_des;
-	curr_des = &priv->rxdes[priv->rx_index];
+	curr_des = &priv->pdes->rxdes[priv->rx_index];
+
 	/* release buffer to DMA */
 	curr_des->rxdes0 |= FTMAC100_RXDES0_RXDMA_OWN;
 	priv->rx_index = (priv->rx_index + 1) % PKTBUFSRX;
@@ -162,7 +169,7 @@ static int __ftmac100_recv(struct ftmac100_data *priv)
 	struct ftmac100_rxdes *curr_des;
 	unsigned short rxlen;
 
-	curr_des = &priv->rxdes[priv->rx_index];
+	curr_des = &priv->pdes->rxdes[priv->rx_index];
 	if (curr_des->rxdes0 & FTMAC100_RXDES0_RXDMA_OWN)
 		return 0;
 
@@ -175,7 +182,9 @@ static int __ftmac100_recv(struct ftmac100_data *priv)
 	}
 
 	rxlen = FTMAC100_RXDES0_RFL (curr_des->rxdes0);
-	invalidate_dcache_range(curr_des->rxdes2,curr_des->rxdes2+rxlen);
+	if (!priv->coherent)
+		invalidate_dcache_range(curr_des->rxdes2,curr_des->rxdes2+rxlen);
+
 	debug ("%s(): RX buffer %d, %x received\n",
 	       __func__, priv->rx_index, rxlen);
 
@@ -188,7 +197,7 @@ static int __ftmac100_recv(struct ftmac100_data *priv)
 static int _ftmac100_send(struct ftmac100_data *priv, void *packet, int length)
 {
 	struct ftmac100 *ftmac100 = (struct ftmac100 *)(uintptr_t)priv->iobase;
-	struct ftmac100_txdes *curr_des = priv->txdes;
+	struct ftmac100_txdes *curr_des = priv->pdes->txdes;
 	ulong start;
 
 	if (curr_des->txdes0 & FTMAC100_TXDES0_TXDMA_OWN) {
@@ -201,8 +210,8 @@ static int _ftmac100_send(struct ftmac100_data *priv, void *packet, int length)
 	length = (length < ETH_ZLEN) ? ETH_ZLEN : length;
 
 	/* initiate a transmit sequence */
-
-	flush_dcache_range((unsigned long)packet,(unsigned long)packet+length);
+	if (!priv->coherent)
+		flush_dcache_range((unsigned long)packet,(unsigned long)packet+length);
 	curr_des->txdes2 = (unsigned int)(unsigned long)packet;	/* TXBUF_BADR */
 
 	curr_des->txdes1 &= FTMAC100_TXDES1_EDOTR;
@@ -241,7 +250,7 @@ static void ftmac100_halt(struct eth_device *dev)
 	return _ftmac100_halt(priv);
 }
 
-static int ftmac100_init(struct eth_device *dev, struct bd_info *bd)
+static int ftmac100_init(struct eth_device *dev, bd_t *bd)
 {
 	struct ftmac100_data *priv = dev->priv;
 	return _ftmac100_init(priv , dev->enetaddr);
@@ -251,7 +260,8 @@ static int _ftmac100_recv(struct ftmac100_data *priv)
 {
 	struct ftmac100_rxdes *curr_des;
 	unsigned short len;
-	curr_des = &priv->rxdes[priv->rx_index];
+	curr_des = &priv->pdes->rxdes[priv->rx_index];
+
 	len = __ftmac100_recv(priv);
 	if (len) {
 		/* pass the packet up to the protocol layers. */
@@ -279,7 +289,7 @@ static int ftmac100_send(struct eth_device *dev, void *packet, int length)
 	return _ftmac100_send(priv , packet , length);
 }
 
-int ftmac100_initialize (struct bd_info *bd)
+int ftmac100_initialize (bd_t *bd)
 {
 	struct eth_device *dev;
 	struct ftmac100_data *priv;
@@ -328,6 +338,7 @@ static int ftmac100_start(struct udevice *dev)
 static void ftmac100_stop(struct udevice *dev)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
+
 	_ftmac100_halt(priv);
 }
 
@@ -343,9 +354,11 @@ static int ftmac100_recv(struct udevice *dev, int flags, uchar **packetp)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
 	struct ftmac100_rxdes *curr_des;
-	curr_des = &priv->rxdes[priv->rx_index];
+	curr_des = &priv->pdes->rxdes[priv->rx_index];
 	int len;
+
 	len = __ftmac100_recv(priv);
+
 	if (len)
 		*packetp = (uchar *)(unsigned long)curr_des->rxdes2;
 
@@ -394,6 +407,28 @@ static const char *dtbmacaddr(u32 ifno)
 	return NULL;
 }
 
+static bool dtbcoherent(struct udevice *dev)
+{
+	int node, len;
+
+	if (dev_read_bool(dev, "dma-coherent"))
+		return true;
+
+	if (gd->fdt_blob == NULL) {
+		printf("%s: don't have a valid gd->fdt_blob!\n", __func__);
+		return NULL;
+	}
+
+	node = fdt_path_offset(gd->fdt_blob, "/");
+	if (node < 0)
+		return NULL;
+
+	if (fdt_get_property(gd->fdt_blob, node, "dma-coherent", &len))
+		return true;
+
+	return false;
+}
+
 static int ftmac100_of_to_plat(struct udevice *dev)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
@@ -401,6 +436,7 @@ static int ftmac100_of_to_plat(struct udevice *dev)
 	const char *mac;
 	pdata->iobase = dev_read_addr(dev);
 	priv->iobase = pdata->iobase;
+	priv->coherent = dtbcoherent(dev);
 	mac = dtbmacaddr(0);
 	if (mac)
 		memcpy(pdata->enetaddr , mac , 6);
@@ -411,7 +447,19 @@ static int ftmac100_of_to_plat(struct udevice *dev)
 static int ftmac100_probe(struct udevice *dev)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
+
 	priv->name = dev->name;
+	priv->pdes = 0;
+
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+	if (!priv->coherent)
+		priv->pdes = (struct ftmac100_des *)noncached_alloc(sizeof(struct ftmac100_des), 4096);
+#endif
+
+	if (!priv->pdes)
+		priv->pdes = (struct ftmac100_des *)&priv->des;
+	memset(priv->pdes, 0, sizeof(struct ftmac100_des));
+
 	return 0;
 }
 
