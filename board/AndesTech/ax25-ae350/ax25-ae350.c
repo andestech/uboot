@@ -77,7 +77,11 @@ ulong board_flash_get_legacy(ulong base, int banknum, flash_info_t *info)
 
 void *board_fdt_blob_setup(void)
 {
+#if (defined(CONFIG_XIP) && CONFIG_IS_ENABLED(RISCV_MMODE))
 	return (void *)CONFIG_SYS_FDT_BASE;
+#else
+	return (void *)(ulong)gd->arch.firmware_fdt_addr;
+#endif
 }
 
 int smc_init(void)
