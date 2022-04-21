@@ -1,20 +1,20 @@
 .. SPDX-License-Identifier: GPL-2.0+
 
-AX25-AE350
-==========
+ANDES25-AE350
+=============
 
-AE350 is the mainline SoC produced by Andes Technology using AX25 CPU core
-base on RISC-V architecture.
+AE350 is the mainline SoC produced by Andes Technology using ANDES 25 series
+CPU core base on RISC-V architecture.
 
 AE350 has integrated both AHB and APB bus and many periphals for application
 and product development.
 
-AX25-AE350 is the SoC with AE350 hardcore CPU.
+ANDES25-AE350 is the SoC with AE350 hardcore CPU.
 
-AX25 is Andes CPU IP to adopt RISC-V architecture.
+ANDES25 is Andes CPU IP to adopt RISC-V architecture.
 
-AX25 Features
--------------
+ANDES25 Features
+----------------
 
 CPU Core
  - 5-stage in-order execution pipeline

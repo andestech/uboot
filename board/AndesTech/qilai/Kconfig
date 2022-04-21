@@ -1,19 +1,16 @@
-if TARGET_AX25_AE350
+if TARGET_ANDES45_QILAI
 
 config SYS_CPU
-	default "ax25"
+	default "andes45"
 
 config SYS_BOARD
-	default "ax25-ae350"
+	default "qilai"
 
 config SYS_VENDOR
 	default "AndesTech"
 
-config SYS_SOC
-	default "ae350"
-
 config SYS_CONFIG_NAME
-	default "ax25-ae350"
+	default "andes45-qilai"
 
 config ENV_SIZE
 	default 0x2000 if ENV_IS_IN_SPI_FLASH
@@ -22,7 +19,7 @@ config ENV_OFFSET
 	default 0x140000 if ENV_IS_IN_SPI_FLASH
 
 config SPL_TEXT_BASE
-	default 0x800000
+	default 0x000000
 
 config SPL_OPENSBI_LOAD_ADDR
 	default 0x01000000
@@ -35,5 +32,6 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 	imply SMP
 	imply SPL_RAM_SUPPORT
 	imply SPL_RAM_DEVICE
+	imply OF_HAS_PRIOR_STAGE
 
 endif
