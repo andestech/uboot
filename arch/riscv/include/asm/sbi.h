@@ -91,9 +91,30 @@ enum sbi_srst_reset_reason {
 };
 
 enum sbi_ext_andes_fid {
-          SBI_EXT_ANDES_SET_PMA,
-          SBI_EXT_ANDES_FREE_PMA,
-          SBI_EXT_ANDES_PROBE_PMA,
+	SBI_EXT_ANDES_GET_MCACHE_CTL_STATUS = 0,
+	SBI_EXT_ANDES_GET_MMISC_CTL_STATUS,
+	SBI_EXT_ANDES_SET_MCACHE_CTL,
+	SBI_EXT_ANDES_SET_MMISC_CTL,
+	SBI_EXT_ANDES_ICACHE_OP,
+	SBI_EXT_ANDES_DCACHE_OP,
+	SBI_EXT_ANDES_L1CACHE_I_PREFETCH,
+	SBI_EXT_ANDES_L1CACHE_D_PREFETCH,
+	SBI_EXT_ANDES_NON_BLOCKING_LOAD_STORE,
+	SBI_EXT_ANDES_WRITE_AROUND,
+	SBI_EXT_ANDES_TRIGGER,
+	SBI_EXT_ANDES_SET_PFM,
+	SBI_EXT_ANDES_READ_POWERBRAKE,
+	SBI_EXT_ANDES_WRITE_POWERBRAKE,
+	SBI_EXT_ANDES_SUSPEND_PREPARE,
+	SBI_EXT_ANDES_SUSPEND_MEM,
+	SBI_EXT_ANDES_SET_SUSPEND_MODE,
+	SBI_EXT_ANDES_ENTER_SUSPEND_MODE,
+	SBI_EXT_ANDES_RESTART,
+	SBI_EXT_ANDES_SET_RESET_VEC,
+	SBI_EXT_ANDES_SET_PMA,
+	SBI_EXT_ANDES_FREE_PMA,
+	SBI_EXT_ANDES_PROBE_PMA,
+	SBI_EXT_ANDES_DCACHE_WBINVAL_ALL,
 };
 
 #ifdef CONFIG_SBI_V01
@@ -162,9 +183,17 @@ long sbi_get_spec_version(void);
 int sbi_get_impl_id(void);
 int sbi_get_impl_version(long *version);
 int sbi_probe_extension(int ext);
+int sbi_get_mvendorid(long *mvendorid);
+int sbi_get_marchid(long *marchid);
+int sbi_get_mimpid(long *mimpid);
 void sbi_srst_reset(unsigned long type, unsigned long reason);
+long sbi_get_L1cache(void);
+void sbi_en_icache(void);
+void sbi_dis_icache(void);
+void sbi_en_dcache(void);
+void sbi_dis_dcache(void);
+void sbi_dcache_wbinval_all(void);
 void sbi_set_pma(phys_addr_t offset, unsigned long vaddr, size_t size);
 void sbi_free_pma(unsigned long vaddr);
 long sbi_probe_pma(void);
-
 #endif

@@ -39,6 +39,16 @@ int cache_disable(struct udevice *dev)
 	return ops->disable(dev);
 }
 
+int cache_wbinval(struct udevice *dev)
+{
+	struct cache_ops *ops = cache_get_ops(dev);
+
+	if (!ops->wbinval)
+		return -ENOSYS;
+
+	return ops->wbinval(dev);
+}
+
 UCLASS_DRIVER(cache) = {
 	.id		= UCLASS_CACHE,
 	.name		= "cache",
