@@ -13,24 +13,24 @@
 
 &binman {
 	itb {
-		filename = "u-boot.itb";
+		filename = "linux.itb";
 
 		fit {
-			description = "Configuration to load OpenSBI before U-Boot";
+			description = "Configuration to load OpenSBI before Linux";
 			#address-cells = <1>;
 			fit,fdt-list = "of-list";
 
 			images {
-				uboot {
-					description = "U-Boot";
+				linux {
+					description = "Linux";
 					type = "standalone";
-					os = "U-Boot";
+					os = "Linux";
 					arch = "riscv";
 					compression = "none";
-					load = /bits/64 <CONFIG_SYS_TEXT_BASE>;
+					load = <CONFIG_SYS_TEXT_BASE>;
 
-					uboot_blob: blob-ext {
-						filename = "u-boot-nodtb.bin";
+					linux_blob: blob-ext {
+						filename = "Image";
 					};
 				};
 
@@ -40,8 +40,8 @@
 					os = "opensbi";
 					arch = "riscv";
 					compression = "none";
-					load = /bits/64 <CONFIG_SPL_OPENSBI_LOAD_ADDR>;
-					entry = /bits/64 <CONFIG_SPL_OPENSBI_LOAD_ADDR>;
+					load = <CONFIG_SPL_OPENSBI_LOAD_ADDR>;
+					entry = <CONFIG_SPL_OPENSBI_LOAD_ADDR>;
 
 					opensbi_blob: opensbi {
 						filename = "fw_dynamic.bin";
@@ -67,7 +67,7 @@
 #endif
 					description = "NAME";
 					firmware = "opensbi";
-					loadables = "uboot";
+					loadables = "linux";
 #ifndef CONFIG_OF_BOARD
 					fdt = "fdt-SEQ";
 #endif

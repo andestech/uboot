@@ -11,11 +11,18 @@
 
 #ifdef CONFIG_SPL
 #define CONFIG_SPL_MAX_SIZE		0x00100000
-#define CONFIG_SPL_BSS_START_ADDR	0x04000000
+#define CONFIG_SPL_BSS_START_ADDR	0x404000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x00100000
 
+#define CONFIG_SYS_SPL_MALLOC_START	0x8000000
+#define CONFIG_SYS_SPL_MALLOC_SIZE	0x2000000
+
 #ifdef CONFIG_SPL_MMC
+#ifdef CONFIG_SPL_LOAD_FIT_NORMAL
 #define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"u-boot.itb"
+#else
+#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"linux.itb"
+#endif
 #endif
 #endif
 
@@ -52,12 +59,12 @@
 #define CONFIG_SYS_NONCACHED_MEMORY	SZ_1M
 
 /* DT blob (fdt) address */
-#define CONFIG_SYS_FDT_BASE		0x800f0000
+#define CONFIG_SYS_FDT_BASE		0x4800f0000
 
 /*
  * Physical Memory Map
  */
-#define PHYS_SDRAM_0	0x00000000		/* SDRAM Bank #1 */
+#define PHYS_SDRAM_0	0x400000000		/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1	\
 	(PHYS_SDRAM_0 + PHYS_SDRAM_0_SIZE)	/* SDRAM Bank #2 */
 #define PHYS_SDRAM_0_SIZE	0x20000000	/* 512 MB */
@@ -74,7 +81,7 @@
 #define CONFIG_SYS_NS16550_CLK		19660800
 
 /* Init Stack Pointer */
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x10000000 - \
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4000000 - \
 					GENERATED_GBL_DATA_SIZE)
 
 /* use CFI framework */
@@ -86,6 +93,7 @@
 #define PHYS_FLASH_1			0x88000000	/* BANK 0 */
 #define CONFIG_SYS_FLASH_BASE		PHYS_FLASH_1
 #define CONFIG_SYS_FLASH_BANKS_LIST	{ PHYS_FLASH_1, }
+#define CONFIG_SYS_MONITOR_BASE		PHYS_FLASH_1
 
 #define CONFIG_SYS_FLASH_ERASE_TOUT	120000	/* TO for Flash Erase (ms) */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* TO for Flash Write (ms) */
@@ -125,11 +133,11 @@
 #include <config_distro_bootcmd.h>
 
 #define CONFIG_EXTRA_ENV_SETTINGS	\
-				"kernel_addr_r=0x00080000\0" \
-				"pxefile_addr_r=0x01f00000\0" \
-				"scriptaddr=0x01f00000\0" \
-				"fdt_addr_r=0x02000000\0" \
-				"ramdisk_addr_r=0x02800000\0" \
+				"kernel_addr_r=0x400600000\0" \
+				"pxefile_addr_r=0x401f00000\0" \
+				"scriptaddr=0x401f00000\0" \
+				"fdt_addr_r=0x404600000\0" \
+				"ramdisk_addr_r=0x404800000\0" \
 				BOOTENV
 
 #endif /* __CONFIG_H */

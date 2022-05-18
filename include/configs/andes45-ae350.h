@@ -15,7 +15,11 @@
 #define CONFIG_SPL_BSS_MAX_SIZE		0x00100000
 
 #ifdef CONFIG_SPL_MMC
+#ifdef CONFIG_SPL_LOAD_FIT_NORMAL
 #define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"u-boot.itb"
+#else
+#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"linux.itb"
+#endif
 #endif
 #endif
 
@@ -74,7 +78,7 @@
 #define CONFIG_SYS_NS16550_CLK		19660800
 
 /* Init Stack Pointer */
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x10000000 - \
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4000000 - \
 					GENERATED_GBL_DATA_SIZE)
 
 /* use CFI framework */
@@ -125,11 +129,11 @@
 #include <config_distro_bootcmd.h>
 
 #define CONFIG_EXTRA_ENV_SETTINGS	\
-				"kernel_addr_r=0x00080000\0" \
+				"kernel_addr_r=0x00600000\0" \
 				"pxefile_addr_r=0x01f00000\0" \
 				"scriptaddr=0x01f00000\0" \
-				"fdt_addr_r=0x02000000\0" \
-				"ramdisk_addr_r=0x02800000\0" \
+				"fdt_addr_r=0x04600000\0" \
+				"ramdisk_addr_r=0x04800000\0" \
 				BOOTENV
 
 #endif /* __CONFIG_H */

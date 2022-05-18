@@ -2,7 +2,7 @@
 
 /dts-v1/;
 
-#include "binman.dtsi"
+#include CONFIG_SPL_LOAD_FIT_CONFIG
 #include "ae350-u-boot.dtsi"
 
 / {
