@@ -144,6 +144,7 @@ call_harts_early_init:
 #endif
 #endif
 
+	mv      a0, s0
 	jal	board_init_f_init_reserve
 
 	SREG	s1, GD_FIRMWARE_FDT_ADDR(gp)
