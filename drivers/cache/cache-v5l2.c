@@ -33,6 +33,13 @@ struct l2cache {
 	volatile u64	cctl_status;
 };
 
+/* Configuration register */
+#define MEM_MAP_OFF	20
+#define MEM_MAP_MSK	BIT(MEM_MAP_OFF)
+/* offset of v0 memory map */
+u32 offset = 0x10;
+u32 stat_offset = 0x4;
+
 /* Control Register */
 #define L2_ENABLE	0x1
 /* prefetch */
@@ -52,14 +59,15 @@ struct l2cache {
 #define DRAMICTL_MSK	BIT(DRAMICTL_OFF)
 
 /* CCTL Command Register */
-#define CCTL_CMD_REG(base, hart)	((ulong)(base) + 0x40 + (hart) * 0x10)
+#define CCTL_CMD_REG(base, hart)	((ulong)(base) + 0x40 + (hart) * (offset))
 #define L2_WBINVAL_ALL	0x12
 
 /* CCTL Status Register */
-#define CCTL_STATUS_MSK(hart)		(0xf << ((hart) * 4))
-#define CCTL_STATUS_IDLE(hart)		(0 << ((hart) * 4))
-#define CCTL_STATUS_PROCESS(hart)	(1 << ((hart) * 4))
-#define CCTL_STATUS_ILLEGAL(hart)	(2 << ((hart) * 4))
+#define CCTL_STATUS_REG(base, hart)	((ulong)(base) + 0x80 + (hart) * (offset))
+#define CCTL_STATUS_MSK(hart)		(0xf << ((hart) * (stat_offset)))
+#define CCTL_STATUS_IDLE(hart)		(0 << ((hart) * (stat_offset)))
+#define CCTL_STATUS_PROCESS(hart)	(1 << ((hart) * (stat_offset)))
+#define CCTL_STATUS_ILLEGAL(hart)	(2 << ((hart) * (stat_offset)))
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -111,6 +119,7 @@ static int v5l2_wbinval(struct udevice *dev)
 	volatile struct l2cache *regs = plat->regs;
 	u8 hart = gd->arch.boot_hart;
 	void __iomem *cctlcmd = (void __iomem *)CCTL_CMD_REG(regs, hart);
+	void __iomem *cctlstat = (void __iomem *)CCTL_STATUS_REG(regs, hart);
 
 	if(!v5l2_exist(regs))
 		return -ENXIO;
@@ -118,8 +127,8 @@ static int v5l2_wbinval(struct udevice *dev)
 	if ((regs) && (readl(&regs->control) & L2_ENABLE)) {
 		writel(L2_WBINVAL_ALL, cctlcmd);
 
-		while ((readl(&regs->cctl_status) & CCTL_STATUS_MSK(hart))) {
-			if ((readl(&regs->cctl_status) & CCTL_STATUS_ILLEGAL(hart))) {
+		while (readl(cctlstat) & CCTL_STATUS_MSK(hart)) {
+			if (readl(cctlstat) & CCTL_STATUS_ILLEGAL(hart)) {
 				printf("L2 flush illegal! hanging...");
 				hang();
 			}
@@ -176,12 +185,19 @@ static int v5l2_probe(struct udevice *dev)
 {
 	struct v5l2_plat *plat = dev_get_platdata(dev);
 	struct l2cache *regs = plat->regs;
-	u32 ctl_val;
+	u32 cfg_val, ctl_val;
 
 	if(!v5l2_exist(regs))
 		return -ENXIO;
 
+	cfg_val = readl(&regs->configure);
 	ctl_val = readl(&regs->control);
+
+	/* If true, v1 memory map */
+	if (cfg_val & MEM_MAP_MSK) {
+		offset = 0x1000;
+		stat_offset = 0x0;
+	}
 
 	if (!(ctl_val & L2_ENABLE))
 		ctl_val |= L2_ENABLE;
