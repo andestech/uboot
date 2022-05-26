@@ -29,19 +29,20 @@
 /* priority register */
 #define PRIORITY_REG(base)	((ulong)(base) + PLICSW_PRIORITY_BASE)
 
-#define ENABLE_HART_IPI         (0x80808080)
-#define SEND_IPI_TO_HART(hart)  (0x80 >> (hart))
+#define ENABLE_HART_IPI         (0x01010101)
+#define SEND_IPI_TO_HART(hart)  (0x1 << (hart))
 #define PLICSW_PRIORITY_BASE        0x4
 #define PLICSW_INTERRUPT_PER_HART   0x8
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static int enable_ipi(int hart)
+int enable_ipi(int hart)
 {
 	unsigned int en;
 
-	en = ENABLE_HART_IPI >> hart;
+	en = ENABLE_HART_IPI << hart;
 	writel(en, (void __iomem *)ENABLE_REG(gd->arch.plic, hart));
+	writel(en, (void __iomem *)ENABLE_REG((gd->arch.plic) + 0x4, hart));
 
 	return 0;
 }
