@@ -88,10 +88,10 @@ void icache_disable(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE)
 	asm volatile (
-		"fence.i\n\t"
 		"csrr t1, 0x7ca\n\t"
 		"andi t0, t1, ~0x1\n\t"
 		"csrw 0x7ca, t0\n\t"
+		"fence.i\n\t"
 	);
 #else
 	sbi_dis_icache();
@@ -116,12 +116,12 @@ void dcache_enable(void)
 void dcache_disable(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE)
-	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
 	asm volatile (
 		"csrr t1, 0x7ca\n\t"
 		"andi t0, t1, ~0x2\n\t"
 		"csrw 0x7ca, t0\n\t"
 	);
+	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
 #else
 	sbi_dis_dcache();
 #endif
