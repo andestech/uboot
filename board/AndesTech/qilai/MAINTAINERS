@@ -1,9 +1,0 @@
-QILAI BOARD
-M:	Rick Chen <rick@andestech.com>
-S:	Maintained
-F:	board/AndesTech/qilai/
-F:	include/configs/andes45-qilai.h
-F:	configs/qilai_a45_spl_defconfig
-F:	configs/qilai_ax45_spl_defconfig
-F:	configs/qilai_a45_spl_xip_defconfig
-F:	configs/qilai_ax45_spl_xip_defconfig

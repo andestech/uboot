@@ -8,9 +8,6 @@ choice
 	prompt "Target select"
 	optional
 
-config TARGET_ANDES45_QILAI
-	bool "Support andes45-qilai"
-
 config TARGET_ANDES25_AE350
 	bool "Support andes25-ae350"
 
@@ -65,7 +62,6 @@ config SPL_SYS_DCACHE_OFF
 
 # board-specific options below
 source "board/AndesTech/ae350/Kconfig"
-source "board/AndesTech/qilai/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
 source "board/sifive/unleashed/Kconfig"
