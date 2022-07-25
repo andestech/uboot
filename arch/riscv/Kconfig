@@ -258,12 +258,6 @@ config SPL_LOAD_FIT_DYNAMIC
 	help
 	  Use fw_dynamic from the FIT image.
 
-config SPL_LOAD_FIT_JUMP
-	bool "Enable SPL (jump mode) applying linux from FIT"
-	depends on SPL_LOAD_FIT
-	help
-	  Use fw_jump from the FIT image.
-
 config SPL_LOAD_FIT_PAYLOAD
 	bool "Enable SPL (payload mode) applying linux from FIT"
 	depends on SPL_LOAD_FIT
