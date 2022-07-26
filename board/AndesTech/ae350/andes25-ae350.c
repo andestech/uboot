@@ -124,7 +124,8 @@ int board_early_init_f(void)
 #ifdef CONFIG_BOARD_EARLY_INIT_R
 int board_early_init_r(void)
 {
-	enable_caches();
+	if (!CONFIG_IS_ENABLED(SYS_DCACHE_OFF))
+		enable_caches();
 
 	return 0;
 }
