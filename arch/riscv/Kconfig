@@ -305,6 +305,13 @@ config XIP
 	  from a NOR flash memory without copying the code to ram.
 	  Say yes here if U-Boot boots from flash directly.
 
+config SEND_IPI_BY_CPUS
+	bool "Send IPI by DTS cpus"
+	default n
+	help
+	  By default, IPI sending mechanism will depend on available_harts.
+	  If enable this, it will depend on CPUs node numbers of DTS.
+
 config SHOW_REGS
 	bool "Show registers on unhandled exception"
 
