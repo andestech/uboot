@@ -75,8 +75,9 @@ ulong board_flash_get_legacy(ulong base, int banknum, flash_info_t *info)
 void *board_fdt_blob_setup(int *err)
 {
 	*err = 0;
+
 	if (IS_ENABLED(CONFIG_OF_SEPARATE) || IS_ENABLED(CONFIG_OF_BOARD)) {
-		if (gd->arch.firmware_fdt_addr)
+		if (fdt_magic((uintptr_t)gd->arch.firmware_fdt_addr) == FDT_MAGIC)
 			return (void *)(ulong)gd->arch.firmware_fdt_addr;
 	}
 
@@ -86,6 +87,9 @@ void *board_fdt_blob_setup(int *err)
 #endif
 
 	return (void *)ANDES_HW_DTB_ADDRESS;
+
+	*err = -EINVAL;
+	return NULL;
 }
 
 int smc_init(void)
