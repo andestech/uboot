@@ -204,6 +204,44 @@ void sbi_srst_reset(unsigned long type, unsigned long reason)
 		  0, 0, 0, 0);
 }
 
+long sbi_get_L1cache(void)
+{
+	struct sbiret ret;
+
+	ret = sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_GET_MCACHE_CTL_STATUS, 0, 0, 0, 0, 0, 0);
+
+	if (!ret.error)
+		if (ret.value)
+			return ret.value;
+
+	return -ENOTSUPP;
+}
+
+void sbi_en_icache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_ICACHE_OP, 1, 0, 0, 0, 0, 0);
+}
+
+void sbi_dis_icache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_ICACHE_OP, 0, 0, 0, 0, 0, 0);
+}
+
+void sbi_en_dcache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_OP, 1, 0, 0, 0, 0, 0);
+}
+
+void sbi_dis_dcache(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_OP, 0, 0, 0, 0, 0, 0);
+}
+
+void sbi_dcache_wbinval_all(void)
+{
+	sbi_ecall(SBI_EXT_ANDES, SBI_EXT_ANDES_DCACHE_WBINVAL_ALL, 0, 0, 0, 0, 0, 0);
+}
+
 long sbi_probe_pma(void)
 {
 	struct sbiret ret;

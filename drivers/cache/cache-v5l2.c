@@ -105,6 +105,22 @@ static int v5l2_disable(struct udevice *dev)
 	return 0;
 }
 
+static int v5l2_disable(struct udevice *dev)
+{
+	struct v5l2_plat *plat = dev_get_plat(dev);
+	volatile struct l2cache *regs = plat->regs;
+	int ret = -ENXIO;
+
+	ret = v5l2_wbinval(dev);
+	if(ret)
+		return ret;
+
+	if ((regs) && (readl(&regs->control) & L2_ENABLE))
+		clrbits_le32(&regs->control, L2_ENABLE);
+
+	return 0;
+}
+
 static int v5l2_of_to_plat(struct udevice *dev)
 {
 	struct v5l2_plat *plat = dev_get_plat(dev);
@@ -150,17 +166,23 @@ static int v5l2_probe(struct udevice *dev)
 		ctl_val |= (plat->dprefetch << DPREPETCH_OFF);
 	}
 
-	if (plat->tram_ctl[0] != -EINVAL) {
-		ctl_val &= ~(TRAMOCTL_MSK | TRAMICTL_MSK);
-		ctl_val |= plat->tram_ctl[0] << TRAMOCTL_OFF;
-		ctl_val |= plat->tram_ctl[1] << TRAMICTL_OFF;
-	}
-
-	if (plat->dram_ctl[0] != -EINVAL) {
-		ctl_val &= ~(DRAMOCTL_MSK | DRAMICTL_MSK);
-		ctl_val |= plat->dram_ctl[0] << DRAMOCTL_OFF;
-		ctl_val |= plat->dram_ctl[1] << DRAMICTL_OFF;
-	}
+	/* ram cycle settings */
+	/*
+	 * **Do NOT** change RAM cycle settings for Andes' EVB, but once you
+	 * you have done the integration, please uncomment the following and
+	 * do the proper setting for your platform.
+	 */
+//	if (plat->tram_ctl[0] != -EINVAL) {
+//		ctl_val &= ~(TRAMOCTL_MSK | TRAMICTL_MSK);
+//		ctl_val |= plat->tram_ctl[0] << TRAMOCTL_OFF;
+//		ctl_val |= plat->tram_ctl[1] << TRAMICTL_OFF;
+//	}
+//
+//	if (plat->dram_ctl[0] != -EINVAL) {
+//		ctl_val &= ~(DRAMOCTL_MSK | DRAMICTL_MSK);
+//		ctl_val |= plat->dram_ctl[0] << DRAMOCTL_OFF;
+//		ctl_val |= plat->dram_ctl[1] << DRAMICTL_OFF;
+//	}
 
 	writel(ctl_val, &regs->control);
 
@@ -168,13 +190,14 @@ static int v5l2_probe(struct udevice *dev)
 }
 
 static const struct udevice_id v5l2_cache_ids[] = {
-	{ .compatible = "v5l2cache" },
+	{ .compatible = "cache" },
 	{}
 };
 
 static const struct cache_ops v5l2_cache_ops = {
 	.enable		= v5l2_enable,
 	.disable	= v5l2_disable,
+	.wbinval	= v5l2_wbinval,
 };
 
 U_BOOT_DRIVER(v5l2_cache) = {

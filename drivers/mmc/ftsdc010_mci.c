@@ -438,10 +438,6 @@ static int ftsdc010_mmc_probe(struct udevice *dev)
 		return ret;
 #endif
 
-	if (dev_read_bool(dev, "cap-mmc-highspeed") || \
-		  dev_read_bool(dev, "cap-sd-highspeed"))
-		chip->caps |= MMC_MODE_HS | MMC_MODE_HS_52MHz;
-
 	ftsdc_setup_cfg(&plat->cfg, dev->name, chip->buswidth, chip->caps,
 			priv->minmax[1] , priv->minmax[0]);
 	chip->mmc = &plat->mmc;
@@ -460,6 +456,7 @@ int ftsdc010_mmc_bind(struct udevice *dev)
 
 static const struct udevice_id ftsdc010_mmc_ids[] = {
 	{ .compatible = "andestech,atfsdc010" },
+	{ .compatible = "andestech,atfsdc010g" },
 	{ }
 };
 
