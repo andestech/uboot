@@ -207,8 +207,16 @@ config ANDES_PLICSW
 	select SPL_REGMAP if SPL
 	select SPL_SYSCON if SPL
 	help
-	  The Andes PLICSW block holds memory-mapped claim and pending
-	  registers associated with software interrupt.
+	  The Andes PLIC block holds memory-mapped claim and pending registers
+	  associated with software interrupt.
+
+config ANDES_PMA
+	bool
+	help
+	  The Andes PMA configuration.
+
+config SYS_MALLOC_F_LEN
+	default 0x1000
 
 config SMP
 	bool "Symmetric Multi-Processing"

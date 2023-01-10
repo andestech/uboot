@@ -131,6 +131,29 @@
 #define CSR_MCAUSE		0x342
 #define CSR_MTVAL		0x343
 #define CSR_MIP			0x344
+
+#define CSR_PMACFG0		0xbc0
+#define CSR_PMACFG1		0xbc1
+#define CSR_PMACFG2		0xbc2
+#define CSR_PMACFG3		0xbc3
+#define CSR_PMAADDR0		0xbd0
+#define CSR_PMAADDR1		0xbd1
+#define CSR_PMAADDR2		0xbd2
+#define CSR_PMAADDR3		0xbd3
+#define CSR_PMAADDR4		0xbd4
+#define CSR_PMAADDR5		0xbd5
+#define CSR_PMAADDR6		0xbd6
+#define CSR_PMAADDR7		0xbd7
+#define CSR_PMAADDR8		0xbd8
+#define CSR_PMAADDR9		0xbd9
+#define CSR_PMAADDR10		0xbda
+#define CSR_PMAADDR11		0xbdb
+#define CSR_PMAADDR12		0xbdc
+#define CSR_PMAADDR13		0xbdd
+#define CSR_PMAADDR14		0xbde
+#define CSR_PMAADDR15		0xbdf
+
+
 #ifdef CONFIG_RISCV_PRIV_1_9
 #define CSR_MBASE		0x380
 #define CSR_MBOUND		0x381
@@ -143,6 +166,8 @@
 #define CSR_TIMEH		0xc81
 #define CSR_INSTRETH		0xc82
 #define CSR_MHARTID		0xf14
+
+#define CSR_MMSCCFG            0xfc2
 
 #ifndef __ASSEMBLY__
 
