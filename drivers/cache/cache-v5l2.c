@@ -83,7 +83,7 @@ static int v5l2_enable(struct udevice *dev)
 	return 0;
 }
 
-static int v5l2_disable(struct udevice *dev)
+static int v5l2_wbinval(struct udevice *dev)
 {
 	struct v5l2_plat *plat = dev_get_plat(dev);
 	volatile struct l2cache *regs = plat->regs;
@@ -99,7 +99,6 @@ static int v5l2_disable(struct udevice *dev)
 				hang();
 			}
 		}
-		clrbits_le32(&regs->control, L2_ENABLE);
 	}
 
 	return 0;
