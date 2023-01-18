@@ -21,6 +21,8 @@
 #include <fdtdec.h>
 #include <dm.h>
 #include <spl.h>
+#include <mapmem.h>
+#include <hang.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -40,6 +42,29 @@ int misc_init_r(void)
 
 	return (csr_marchid & mask64)? env_set("cpu", "ax45") : env_set("cpu", "a45");
 }
+
+#if CONFIG_IS_ENABLED(LOAD_FIT) || CONFIG_IS_ENABLED(LOAD_FIT_FULL)
+#define ANDES_SPL_FDT_ADDR	(CONFIG_SYS_TEXT_BASE - 0x100000)
+void spl_perform_fixups(struct spl_image_info *spl_image)
+{
+	/*
+	 * Originally, u-boot-spl will place DTB directly after the kernel,
+	 * but the size of the kernel did not include the BSS section, which
+	 * means u-boot-spl will place the DTB in the kernel BSS section
+	 * causing the DTB to be cleared by kernel BSS initializtion.
+	 * Moving DTB in front of the kernel can avoid the error.
+	 */
+	if (ANDES_SPL_FDT_ADDR < 0) {
+		printf("%s: CONFIG_SYS_TEXT_BASE needs to be larger than 0x100000\n",
+		       __func__);
+		hang();
+	}
+
+	memcpy((void *)ANDES_SPL_FDT_ADDR, spl_image->fdt_addr,
+	       fdt_totalsize(spl_image->fdt_addr));
+	spl_image->fdt_addr = map_sysmem(ANDES_SPL_FDT_ADDR, 0);
+}
+#endif
 
 int board_init(void)
 {
