@@ -2175,7 +2175,7 @@ CLEAN_DIRS  += $(MODVERDIR) \
 
 CLEAN_FILES += include/bmp_logo.h include/bmp_logo_data.h \
 	       include/generated/env.* drivers/video/u_boot_logo.S \
-	       tools/version.h u-boot* MLO* SPL System.map fit-dtb.blob* \
+	       tools/version.h u-boot* *.itb MLO* SPL System.map fit-dtb.blob* \
 	       u-boot-ivt.img.log u-boot-dtb.imx.log SPL.log u-boot.imx.log \
 	       lpc32xx-* bl31.c bl31.elf bl31_*.bin image.map tispl.bin* \
 	       idbloader.img flash.bin flash.log defconfig keep-syms-lto.c \

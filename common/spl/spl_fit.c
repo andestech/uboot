@@ -363,7 +363,8 @@ static bool os_takes_devicetree(uint8_t os)
 	case IH_OS_U_BOOT:
 		return true;
 	case IH_OS_LINUX:
-		return IS_ENABLED(CONFIG_SPL_OS_BOOT);
+		return IS_ENABLED(CONFIG_SPL_OS_BOOT) ||
+			IS_ENABLED(CONFIG_SPL_OPENSBI);
 	default:
 		return false;
 	}
@@ -380,7 +381,7 @@ static int spl_fit_append_fdt(struct spl_image_info *spl_image,
 	 * Use the address following the image as target address for the
 	 * device tree.
 	 */
-	image_info.load_addr = spl_image->load_addr + spl_image->size;
+	image_info.load_addr = ALIGN(spl_image->load_addr + spl_image->size, 8);
 
 	/* Figure out which device tree the board wants to use */
 	node = spl_fit_get_image_node(ctx, FIT_FDT_PROP, index++);

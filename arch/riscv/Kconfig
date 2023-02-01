@@ -253,6 +253,33 @@ config NR_CPUS
 	  Stack memory is pre-allocated. U-Boot must therefore know the
 	  maximum number of CPUs that may be present.
 
+choice
+	prompt "Fit type"
+	default SPL_LOAD_FIT_NORMAL
+
+config SPL_LOAD_FIT_NORMAL
+	bool "Enable SPL applying u-boot proper from FIT"
+	depends on SPL_LOAD_FIT
+	help
+	  Use fw_dynamic from the FIT image.
+
+config SPL_LOAD_FIT_DYNAMIC
+	bool "Enable SPL (dynamic mode) applying linux from FIT"
+	depends on SPL_LOAD_FIT
+	help
+	  Use fw_dynamic from the FIT image.
+
+endchoice
+
+config SPL_LOAD_FIT_CONFIG
+	string "Default FIT configuration"
+	depends on SPL_LOAD_FIT
+	help
+	  Specify corresponding FIT configuration for each modes.
+
+config SPL_FS_LOAD_PAYLOAD_NAME
+	default "linux.itb" if (SPL_LOAD_FIT_DYNAMIC && SPL_MMC)
+
 config SBI
 	bool
 	default y if RISCV_SMODE || SPL_RISCV_SMODE
