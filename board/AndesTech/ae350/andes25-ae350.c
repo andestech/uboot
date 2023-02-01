@@ -121,6 +121,15 @@ int board_early_init_f(void)
 }
 #endif
 
+#ifdef CONFIG_BOARD_EARLY_INIT_R
+int board_early_init_r(void)
+{
+	enable_caches();
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_SPL
 void board_boot_order(u32 *spl_boot_list)
 {

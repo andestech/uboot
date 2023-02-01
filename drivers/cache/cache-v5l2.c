@@ -34,6 +34,8 @@ struct l2cache {
 	volatile u64	cctl_status;
 };
 
+DECLARE_GLOBAL_DATA_PTR;
+
 /* Configuration register */
 #define MEM_MAP_OFF	20
 #define MEM_MAP_MSK	BIT(MEM_MAP_OFF)
@@ -92,15 +94,15 @@ static int v5l2_enable(struct udevice *dev)
 	return 0;
 }
 
-static int v5l2_wbinval(struct udevice *dev)
+static inline int v5l2_wbinval(struct udevice *dev)
 {
-	struct v5l2_plat *plat = dev_get_plat(dev);
-	volatile struct l2cache *regs = plat->regs;
+	volatile struct l2cache *regs = gd->arch.l2c;
+
 	u8 hart = gd->arch.boot_hart;
 	void __iomem *cctlcmd = (void __iomem *)CCTL_CMD_REG(regs, hart);
 	void __iomem *cctlstat = (void __iomem *)CCTL_STATUS_REG(regs, hart);
 
-	if ((regs) && (readl(&regs->control) & L2_ENABLE)) {
+	if (regs) {
 		writel(L2_WBINVAL_ALL, cctlcmd);
 
 		while (readl(cctlstat) & CCTL_STATUS_MSK(hart)) {
@@ -120,12 +122,11 @@ static int v5l2_disable(struct udevice *dev)
 	volatile struct l2cache *regs = plat->regs;
 	int ret = -ENXIO;
 
+	if ((regs) && (readl(&regs->control) & L2_ENABLE))
+		clrbits_le32(&regs->control, L2_ENABLE);
 	ret = v5l2_wbinval(dev);
 	if(ret)
 		return ret;
-
-	if ((regs) && (readl(&regs->control) & L2_ENABLE))
-		clrbits_le32(&regs->control, L2_ENABLE);
 
 	return 0;
 }
@@ -160,6 +161,7 @@ static int v5l2_probe(struct udevice *dev)
 	struct l2cache *regs = plat->regs;
 	u32 cfg_val, ctl_val;
 
+	gd->arch.l2c = regs;
 	cfg_val = readl(&regs->configure);
 	ctl_val = readl(&regs->control);
 
