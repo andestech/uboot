@@ -45,7 +45,7 @@ int misc_init_r(void)
 }
 
 #if CONFIG_IS_ENABLED(LOAD_FIT) || CONFIG_IS_ENABLED(LOAD_FIT_FULL)
-#define ANDES_SPL_FDT_ADDR	(CONFIG_SYS_TEXT_BASE - 0x100000)
+#define ANDES_SPL_FDT_ADDR	(CONFIG_TEXT_BASE - 0x100000)
 void spl_perform_fixups(struct spl_image_info *spl_image)
 {
 	/*
@@ -56,7 +56,7 @@ void spl_perform_fixups(struct spl_image_info *spl_image)
 	 * Moving DTB in front of the kernel can avoid the error.
 	 */
 	if (ANDES_SPL_FDT_ADDR < 0) {
-		printf("%s: CONFIG_SYS_TEXT_BASE needs to be larger than 0x100000\n",
+		printf("%s: CONFIG_TEXT_BASE needs to be larger than 0x100000\n",
 		       __func__);
 		hang();
 	}
