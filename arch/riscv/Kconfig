@@ -278,7 +278,7 @@ config SPL_LOAD_FIT_CONFIG
 	  Specify corresponding FIT configuration for each modes.
 
 config SPL_FS_LOAD_PAYLOAD_NAME
-	default "linux.itb" if (SPL_LOAD_FIT_DYNAMIC && SPL_MMC)
+	default "linux.itb" if SPL_LOAD_FIT_DYNAMIC
 
 config SBI
 	bool
