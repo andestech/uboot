@@ -1,4 +1,4 @@
-config ANDES45
+config ANDESTAR_V5
 	bool
 	select ARCH_EARLY_INIT_R
 	imply CPU

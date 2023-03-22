@@ -8,11 +8,8 @@ choice
 	prompt "Target select"
 	optional
 
-config TARGET_ANDES25_AE350
-	bool "Support andes25-ae350"
-
-config TARGET_ANDES45_AE350
-	bool "Support andes45-ae350"
+config TARGET_ANDES_AE350
+	bool "Support AndesTech AE350 board"
 
 config TARGET_MICROCHIP_ICICLE
 	bool "Support Microchip PolarFire-SoC Icicle Board"
@@ -70,8 +67,7 @@ source "board/openpiton/riscv64/Kconfig"
 source "board/sipeed/maix/Kconfig"
 
 # platform-specific options below
-source "arch/riscv/cpu/andes25/Kconfig"
-source "arch/riscv/cpu/andes45/Kconfig"
+source "arch/riscv/cpu/andesv5/Kconfig"
 source "arch/riscv/cpu/fu540/Kconfig"
 source "arch/riscv/cpu/fu740/Kconfig"
 source "arch/riscv/cpu/generic/Kconfig"
