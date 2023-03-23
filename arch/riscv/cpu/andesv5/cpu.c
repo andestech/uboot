@@ -41,10 +41,10 @@ void harts_early_init(void)
         unsigned long long mdcm_cfg_val = csr_read(CSR_MICM_CFG);
         unsigned long long micm_cfg_val = csr_read(CSR_MDCM_CFG);
 
-		mcache_ctl_val |= (V5_MCACHE_CTL_DC_COHEN_EN | V5_MCACHE_CTL_IC_EN | \
-							V5_MCACHE_CTL_DC_EN | V5_MCACHE_CTL_CCTL_SUEN | \
-							V5_MCACHE_CTL_L1I_PREFETCH_EN | V5_MCACHE_CTL_L1D_PREFETCH_EN | \
-							V5_MCACHE_CTL_DC_WAROUND_1_EN | V5_MCACHE_CTL_L2C_WAROUND_1_EN);
+		mcache_ctl_val |= (V5_MCACHE_CTL_DC_COHEN_EN | V5_MCACHE_CTL_CCTL_SUEN | \
+							V5_MCACHE_CTL_IC_EN | V5_MCACHE_CTL_L1I_PREFETCH_EN | \
+							V5_MCACHE_CTL_L1D_PREFETCH_EN | V5_MCACHE_CTL_DC_WAROUND_1_EN | \
+							V5_MCACHE_CTL_L2C_WAROUND_1_EN);
 
 		if ((mmsc_cfg_val & V5_MMSC_CFG_TLB_ECC_1) || (mmsc_cfg_val & V5_MMSC_CFG_TLB_ECC_2))
 			mcache_ctl_val |= V5_MCACHE_CTL_TLB_ECCEN_2;
@@ -52,6 +52,9 @@ void harts_early_init(void)
 			mcache_ctl_val |= V5_MCACHE_CTL_IC_ECCEN_2;
 		if ((mdcm_cfg_val & V5_MDCM_CFG_DC_ECC_1) || (mdcm_cfg_val & V5_MDCM_CFG_DC_ECC_1))
 			mcache_ctl_val |= V5_MCACHE_CTL_DC_ECCEN_2;
+
+		if (!CONFIG_IS_ENABLED(SYS_DCACHE_OFF))
+			mcache_ctl_val |= V5_MCACHE_CTL_DC_EN;
 
 		csr_write(CSR_MCACHE_CTL, mcache_ctl_val);
 
