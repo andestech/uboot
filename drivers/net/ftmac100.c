@@ -446,7 +446,7 @@ static int ftmac100_probe(struct udevice *dev)
 
 #ifdef CONFIG_SYS_NONCACHED_MEMORY
 	if (!priv->coherent)
-		priv->pdes = (struct ftmac100_des *)noncached_alloc(sizeof(struct ftmac100_des), 4096);
+		priv->pdes = (struct ftmac100_des *)(uintptr_t)noncached_alloc(sizeof(struct ftmac100_des), 4096);
 #endif
 
 	if (!priv->pdes)
