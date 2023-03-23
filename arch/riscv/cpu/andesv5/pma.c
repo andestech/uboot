@@ -4,6 +4,7 @@
  * Rick Chen, Andes Technology Corporation <rick@andestech.com>
  */
 
+#include <asm/arch-andes/csr.h>
 #include <asm/csr.h>
 #include <asm/encoding.h>
 #include <asm/sbi.h>
@@ -31,7 +32,7 @@ int noncached_init(void)
 	size_t size;
 
 #if !CONFIG_IS_ENABLED(RISCV_SMODE)
-	if (!(csr_read(CSR_MMSCCFG) & DPMA))
+	if (!(csr_read(CSR_MMSC_CFG) & DPMA))
 #else
 
 	if (!sbi_probe_pma())

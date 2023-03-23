@@ -4,6 +4,7 @@
  * Rick Chen, Andes Technology Corporation <rick@andestech.com>
  */
 
+#include <asm/arch-andes/csr.h>
 #include <asm/encoding.h>
 #include <asm/csr.h>
 #include <asm/sbi.h>
@@ -14,14 +15,6 @@
 #include <dm/uclass-internal.h>
 #include <malloc.h>
 #include <linux/log2.h>
-
-#define MCACHE_CTL	0x7ca
-#define MCACHE_CTL_IC_EN	(1UL << 0)
-#define MCACHE_CTL_DC_EN	(1UL << 1)
-
-#define CCTL_REG_MCCTLCOMMAND_NUM	0x7cc
-
-#define CCTL_L1D_WBINVAL_ALL	6
 
 void enable_caches(void)
 {
@@ -54,7 +47,7 @@ static void cache_ops(int (*ops)(struct udevice *dev))
 void flush_dcache_all(void)
 {
 #if CONFIG_IS_ENABLED(RISCV_MMODE)
-	csr_write(CCTL_REG_MCCTLCOMMAND_NUM, CCTL_L1D_WBINVAL_ALL);
+	csr_write(CSR_MCCTLCOMMAND, CCTL_L1D_WBINVAL_ALL);
 #else
 	if(dcache_status())
 		sbi_dcache_wbinval_all();
@@ -95,7 +88,7 @@ void dcache_enable(void)
 		"csrw 0x7ca, t0\n\t"
 	);
 #else
-	if (!(sbi_get_L1cache()& MCACHE_CTL_DC_EN))
+	if (!(sbi_get_L1cache() & V5_MCACHE_CTL_DC_EN))
 		sbi_en_dcache();
 #endif
 	cache_ops(cache_enable);
@@ -114,7 +107,7 @@ int icache_status(void)
 		: "memory"
 	);
 #else
-	ret = (sbi_get_L1cache()& MCACHE_CTL_IC_EN);
+	ret = (sbi_get_L1cache() & V5_MCACHE_CTL_IC_EN);
 #endif
 
 	return ret;
@@ -133,7 +126,7 @@ int dcache_status(void)
 		: "memory"
 	);
 #else
-	ret = (sbi_get_L1cache()& MCACHE_CTL_DC_EN);
+	ret = (sbi_get_L1cache() & V5_MCACHE_CTL_DC_EN);
 #endif
 
 	return ret;
