@@ -12,6 +12,8 @@
 #include <cpu_func.h>
 #include <malloc.h>
 #include <linux/log2.h>
+#include <linux/kernel.h>
+#include <linux/sizes.h>
 
 #define DPMA			(_AC(0x1, UL) << 30)
 int pma_set(unsigned long addr, unsigned int size);
@@ -54,6 +56,7 @@ phys_addr_t noncached_alloc(size_t size, size_t align)
 {
 	phys_addr_t next = ALIGN(noncached_next, align);
 	size = __roundup_pow_of_two(size);
+	size = max((size_t)SZ_4K, size);
 
 	if (next >= noncached_end || (noncached_end - next) < size)
 		return 0;
@@ -62,7 +65,7 @@ phys_addr_t noncached_alloc(size_t size, size_t align)
 #if !CONFIG_IS_ENABLED(RISCV_SMODE)
 	pma_set(next, size);
 #else
-	sbi_set_pma(next, next, 0x100);
+	sbi_set_pma(next, next, size);
 #endif
 	noncached_next = next + size;
 
