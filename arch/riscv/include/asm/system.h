@@ -15,6 +15,7 @@ struct event;
 #ifdef CONFIG_SYS_NONCACHED_MEMORY
 int noncached_init(void);
 phys_addr_t noncached_alloc(size_t size, size_t align);
+void noncached_free(phys_addr_t addr);
 #endif
 
 /*

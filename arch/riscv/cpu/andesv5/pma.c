@@ -71,4 +71,13 @@ phys_addr_t noncached_alloc(size_t size, size_t align)
 
 	return next;
 }
+
+void noncached_free(phys_addr_t addr)
+{
+#if !CONFIG_IS_ENABLED(RISCV_SMODE)
+	printf("ERROR: %s: Not support freeing PMA in M-mode\n", __func__);
+#else
+	sbi_free_pma(addr);
+#endif
+}
 #endif /* CONFIG_SYS_NONCACHED_MEMORY */

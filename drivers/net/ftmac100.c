@@ -326,8 +326,17 @@ out:
 #ifdef CONFIG_DM_ETH
 static int ftmac100_start(struct udevice *dev)
 {
-	struct eth_pdata *plat = dev_get_plat(dev);
 	struct ftmac100_data *priv = dev_get_priv(dev);
+	struct eth_pdata *plat	   = dev_get_plat(dev);
+
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+	if (!priv->coherent)
+		priv->pdes = (struct ftmac100_des *)(uintptr_t)noncached_alloc(
+			sizeof(struct ftmac100_des), 4096);
+#endif
+	if (!priv->pdes)
+		priv->pdes = (struct ftmac100_des *)&priv->des;
+	memset(priv->pdes, 0, sizeof(struct ftmac100_des));
 
 	return _ftmac100_init(priv, plat->enetaddr);
 }
@@ -335,6 +344,12 @@ static int ftmac100_start(struct udevice *dev)
 static void ftmac100_stop(struct udevice *dev)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
+
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+	if (!priv->coherent)
+		noncached_free((phys_addr_t)(uintptr_t)priv->pdes);
+#endif
+
 	_ftmac100_halt(priv);
 }
 
@@ -441,18 +456,7 @@ static int ftmac100_of_to_plat(struct udevice *dev)
 static int ftmac100_probe(struct udevice *dev)
 {
 	struct ftmac100_data *priv = dev_get_priv(dev);
-	priv->name = dev->name;
-	priv->pdes = 0;
-
-#ifdef CONFIG_SYS_NONCACHED_MEMORY
-	if (!priv->coherent)
-		priv->pdes = (struct ftmac100_des *)(uintptr_t)noncached_alloc(sizeof(struct ftmac100_des), 4096);
-#endif
-
-	if (!priv->pdes)
-		priv->pdes = (struct ftmac100_des *)&priv->des;
-	memset(priv->pdes, 0, sizeof(struct ftmac100_des));
-
+	priv->name		   = dev->name;
 	return 0;
 }
 
