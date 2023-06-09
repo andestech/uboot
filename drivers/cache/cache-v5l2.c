@@ -88,7 +88,7 @@ static int v5l2_enable(struct udevice *dev)
 	struct v5l2_plat *plat = dev_get_plat(dev);
 	volatile struct l2cache *regs = plat->regs;
 
-	if (regs)
+	if (regs && (!(regs->control & L2_ENABLE)))
 		setbits_le32(&regs->control, L2_ENABLE);
 
 	return 0;
@@ -97,7 +97,6 @@ static int v5l2_enable(struct udevice *dev)
 static inline int v5l2_wbinval(struct udevice *dev)
 {
 	volatile struct l2cache *regs = gd->arch.l2c;
-
 	u8 hart = gd->arch.boot_hart;
 	void __iomem *cctlcmd = (void __iomem *)CCTL_CMD_REG(regs, hart);
 	void __iomem *cctlstat = (void __iomem *)CCTL_STATUS_REG(regs, hart);

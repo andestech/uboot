@@ -24,7 +24,7 @@ struct arch_global_data {
 #ifdef CONFIG_ANDES_PLICSW
 	void __iomem *plicsw;	/* plic base address */
 #endif
-#ifdef CONFIG_V5L2_CACHE
+#if CONFIG_IS_ENABLED(V5L2_CACHE)
 	void __iomem *l2c;	/* l2c base address */
 #endif
 #if CONFIG_IS_ENABLED(SMP)

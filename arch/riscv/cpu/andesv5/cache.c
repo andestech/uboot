@@ -33,6 +33,7 @@ void enable_caches(void)
 	}
 }
 
+#if CONFIG_IS_ENABLED(V5L2_CACHE)
 static void cache_ops(int (*ops)(struct udevice *dev))
 {
 	struct udevice *dev = NULL;
@@ -42,18 +43,20 @@ static void cache_ops(int (*ops)(struct udevice *dev))
 	if (dev)
 		ops(dev);
 }
-
+#endif
 
 void flush_dcache_all(void)
 {
+	if (dcache_status()) {
 #if CONFIG_IS_ENABLED(RISCV_MMODE)
-	csr_write(CSR_MCCTLCOMMAND, CCTL_L1D_WBINVAL_ALL);
+		csr_write(CSR_MCCTLCOMMAND, CCTL_L1D_WBINVAL_ALL);
+#if CONFIG_IS_ENABLED(V5L2_CACHE)
+		cache_ops(cache_wbinval);
+#endif
 #else
-	if(dcache_status())
 		sbi_dcache_wbinval_all();
 #endif
-
-	cache_ops(cache_wbinval);
+	}
 }
 
 void flush_dcache_range(unsigned long start, unsigned long end)
@@ -91,7 +94,6 @@ void dcache_enable(void)
 	if (!(sbi_get_L1cache() & V5_MCACHE_CTL_DC_EN))
 		sbi_en_dcache();
 #endif
-	cache_ops(cache_enable);
 }
 
 int icache_status(void)

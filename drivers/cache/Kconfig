@@ -22,7 +22,7 @@ config L2X0_CACHE
 	  ARMv7(32-bit) devices. The driver configures the cache settings
 	  found in the device tree.
 
-config V5L2_CACHE
+config SPL_V5L2_CACHE
 	bool "Andes V5L2 cache driver"
 	select CACHE
 	help
