@@ -334,6 +334,12 @@ config XILINX_TB_WATCHDOG
 	  Select this to enable Xilinx Axi watchdog timer, which can be found on some
 	  Xilinx Microblaze Platforms.
 
+config WDT_ATCWDT200
+	bool "Andes watchdog timer support"
+	depends on WDT
+	help
+	  Select this to enable ATCWDT200 watchdog timer
+
 config WDT_XILINX
 	bool "Xilinx window watchdog timer support"
 	depends on WDT && ARCH_VERSAL
