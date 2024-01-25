@@ -14,6 +14,7 @@
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <dm.h>
+#include <dm/device_compat.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -25,6 +26,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define SPI0_BASE		0xf0b00000
 #define SPI1_BASE		0xf0f00000
 #define NSPI_MAX_CS_NUM		1
+#define SPI_DEF_SRC_CLK		100000000
+#define SPI_DEF_MAX_CLK		40000000
 
 struct atcspi200_spi_regs {
 	u32	rev;
@@ -73,13 +76,16 @@ struct atcspi200_spi_regs {
 	u32	intsta;
 	u32	timing;		/* 0x40 */
 #define SCLK_DIV_MASK	0xFF
+#define SCLK_DIV_BYPASS 0xFF
+#define SCLK_DIV_MAX    0xFE
 };
 
 struct nds_spi_slave {
 	volatile struct atcspi200_spi_regs *regs;
 	int		to;
 	unsigned int	freq;
-	ulong		clock;
+	ulong		spi_clock_source_f;
+	ulong		clock_limit_f;
 	unsigned int	mode;
 	u8		num_cs;
 	unsigned int	mtiming;
@@ -94,41 +100,51 @@ struct nds_spi_slave {
 
 static int __atcspi200_spi_set_speed(struct nds_spi_slave *ns)
 {
+	ulong spi_sclk_f;
 	u32 tm;
-	u8 div;
-	tm = ns->regs->timing;
-	tm &= ~SCLK_DIV_MASK;
+	u32 div;
 
-	if(ns->freq >= ns->clock)
-		div =0xff;
-	else{
-		for (div = 0; div < 0xff; div++) {
-			if (ns->freq >= ns->clock / (2 * (div + 1)))
-				break;
+	tm = ns->regs->timing & ~SCLK_DIV_MASK;
+
+	if (ns->freq >= ns->clock_limit_f)
+		spi_sclk_f = ns->clock_limit_f;
+	else
+		spi_sclk_f = ns->freq;
+
+	/*
+	 *	The SCLK_DIV value 0xff is a special value which indicates that the
+	 *	SCLK frequency should be the same as the spi_clock frequency.
+	 */
+	if (spi_sclk_f >= ns->spi_clock_source_f) {
+		div = SCLK_DIV_BYPASS;
+	} else {
+		div = (ns->spi_clock_source_f / (spi_sclk_f * 2)) - 1;
+		if (div > SCLK_DIV_MAX) {
+			pr_err("Unsupported SPI clock %ld", spi_sclk_f);
+			return -EINVAL;
 		}
 	}
 
-	tm |= div;
-	ns->regs->timing = tm;
-
+	ns->regs->timing = tm | div;
 	return 0;
-
 }
 
 static int __atcspi200_spi_claim_bus(struct nds_spi_slave *ns)
 {
-		unsigned int format=0;
-		ns->regs->ctrl |= (TXFRST|RXFRST|SPIRST);
-		while((ns->regs->ctrl &(TXFRST|RXFRST|SPIRST))&&(ns->to--))
-			if(!ns->to)
-				return -EINVAL;
+	int ret = 0;
+	unsigned int format = 0;
 
-		ns->cmd_len = 0;
-		format = ns->mode|DATA_LENGTH(8);
-		ns->regs->format = format;
-		__atcspi200_spi_set_speed(ns);
+	ns->regs->ctrl |= (TXFRST | RXFRST | SPIRST);
+	while ((ns->regs->ctrl & (TXFRST | RXFRST | SPIRST)) && (ns->to--))
+		if (!ns->to)
+			return -EINVAL;
 
-		return 0;
+	ns->cmd_len = 0;
+	format = ns->mode | DATA_LENGTH(8);
+	ns->regs->format = format;
+	ret = __atcspi200_spi_set_speed(ns);
+
+	return ret;
 }
 
 static int __atcspi200_spi_release_bus(struct nds_spi_slave *ns)
@@ -168,7 +184,6 @@ static int __atcspi200_spi_start(struct nds_spi_slave *ns)
 
 static int __atcspi200_spi_stop(struct nds_spi_slave *ns)
 {
-	ns->regs->timing = ns->mtiming;
 	while ((ns->regs->status & SPIBSY)&&(ns->to--))
 		if (!ns->to)
 			return -EINVAL;
@@ -322,7 +337,7 @@ static int atcspi200_spi_claim_bus(struct udevice *dev)
 	struct nds_spi_slave *ns = dev_get_priv(bus);
 
 	if (slave_plat->cs >= ns->num_cs) {
-		printf("Invalid SPI chipselect\n");
+		dev_err(dev, "Invalid SPI chipselect\n");
 		return -EINVAL;
 	}
 
@@ -350,33 +365,35 @@ static int atcspi200_spi_get_clk(struct udevice *bus)
 {
 	struct nds_spi_slave *ns = dev_get_priv(bus);
 	struct clk clk;
-	ulong clk_rate;
 	int ret;
 
 	ret = clk_get_by_index(bus, 0, &clk);
-	if (ret)
-		return -EINVAL;
-
-	clk_rate = clk_get_rate(&clk);
-	if (!clk_rate)
-		return -EINVAL;
-
-	ns->clock = clk_rate;
-	clk_free(&clk);
+	if (ret) {
+		dev_err(bus, "No available clock node found, so set to default clock of 50MHz.\n");
+		ns->spi_clock_source_f = SPI_DEF_SRC_CLK;
+	} else {
+		ns->spi_clock_source_f = clk_get_rate(&clk);
+		if (!ns->spi_clock_source_f) {
+			dev_err(bus, "Invalid clock source and failure to initialize the SPI driver.\n");
+			return -EINVAL;
+		}
+		clk_free(&clk);
+	}
+	ns->clock_limit_f = dev_read_u32_default(bus, "spi-max-frequency", SPI_DEF_MAX_CLK);
 
 	return 0;
 }
 
 static int atcspi200_spi_probe(struct udevice *bus)
 {
+	int ret = 0;
 	struct nds_spi_slave *ns = dev_get_priv(bus);
 
 	ns->to = SPI_TIMEOUT;
 	ns->max_transfer_length = MAX_TRANSFER_LEN;
-	ns->mtiming = ns->regs->timing;
-	atcspi200_spi_get_clk(bus);
+	ret = atcspi200_spi_get_clk(bus);
 
-	return 0;
+	return ret;
 }
 
 static int atcspi200_ofdata_to_platadata(struct udevice *bus)
@@ -389,7 +406,7 @@ static int atcspi200_ofdata_to_platadata(struct udevice *bus)
 				 sizeof(struct atcspi200_spi_regs),
 				 MAP_NOCACHE);
 	if (!ns->regs) {
-		printf("%s: could not map device address\n", __func__);
+		dev_err(bus, "%s: could not map device address\n", __func__);
 		return -EINVAL;
 	}
 	ns->num_cs = fdtdec_get_int(blob, node, "num-cs", 4);
